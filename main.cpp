@@ -1,15 +1,17 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   main.cpp
- * \brief 程序的入口文件
+ * \brief 
  *
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
  * \date   February 2025
  *********************************************************************/
 
-#define SDL_MAIN_HANDLED
- //#include <vld.h>
-#include "util/common/preprocessor.h" // 先包含windows.h再包含glad.h
+
+#include "util/common/preprocessor.h"
+#ifdef VLD_CHECK
+#include <vld.h>
+#endif // VLD_CHECK
 #include <iostream>
 #include "render/core.h"
 #include "render/shader.h"
@@ -46,8 +48,8 @@
 #include "render/material/GrassInstanceMaterial.h"
 #include "render/mesh/InstanceMesh.h"
 #include "./physics/physx_tool.h"
-#include "util/profiler/profiler.h"
-
+#include "util/profiler/benchmark.h"
+#include "util/logger/log.h"
 
 std::unique_ptr<Renderer> renderer = nullptr;
 std::shared_ptr<Scene> sceneInscreen = nullptr;
@@ -66,6 +68,7 @@ glm::vec3 clearColor{ 0.6f, 0.7f, 0.6f };
 std::shared_ptr<FrameBuffer> framebuffer = nullptr;
 std::shared_ptr<FrameBuffer> fboResolve = nullptr;
 
+using namespace Benchmark;
 
 void OnResize(int width, int height) {
 	glApp.setWindowSize(width, height);
@@ -283,10 +286,17 @@ int main(int /*argc*/, char* /*argv[]*/) {
 	if (!initPhysics()) // 初始化物理引擎
 		assert(false && "Failed to initialize PhysX");
 	preparePhysics(); // 准备渲染图形
-	
-	PROFILE_SCOPE("333");
-	// 生成报告
-	Profiler::getInstance().generateReport();
+
+	Logger::getInstance().init(LOG_LEVEL_DEBUG, std::make_shared<AppenderConsole>());
+	Logger::getInstance().addAppender(std::make_shared<AppenderFile>("log"));
+	LOG_INFO("Simple message");                   // [DEBUG] Simple message
+	LOG_INFO("Simple message");                   // [DEBUG] Simple message
+	LOG_DEBUG("Simple message");                   // [DEBUG] Simple message
+	LOG_DEBUG("Value: {}", 42);                    // [DEBUG] Value: 42
+	LOG_DEBUG("Pair: {}-{}", "A1", 3.14);          // [DEBUG] Pair: A1-3.14
+	LOG_WARN("Missing {}: {}", "config", 404);     // [WARN ] Missing config: 404
+	LOG_ERROR("Critical error in {}!", "moduleX"); // [FATAL] Critical error in moduleX!
+	LOG_ERROR("Critical error in {}!", "moduleX"); // [FATAL] Critical error in moduleX!
 
 	while (glApp.update()) {
 		stepPhysics();
@@ -350,6 +360,7 @@ int main(int /*argc*/, char* /*argv[]*/) {
 						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
 						sceneChildIndex++;  // 增加下一个模型矩阵的索引
 					}
+					break;
 				}
 				default:
 					break;

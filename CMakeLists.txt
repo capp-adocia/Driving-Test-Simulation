@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 add_definitions(-DDEBUG)
-
 project(OpenGL_Lecture)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -23,7 +22,8 @@ endif()
 # 设置编译器警告等级
 if(MSVC)
     # 对于 MSVC 编译器
-    add_compile_options(/W4 /WX) # W4: 高警告级别，WX: 将警告当作错误
+    add_compile_options(/W3 /WX -D_CRT_SECURE_NO_WARNINGS)
+    add_compile_options(/wd4819)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
     # 对于 GCC 或 Clang 编译器
     add_compile_options(-Wall -Wextra -Wpedantic -Wunused-variable -Werror)

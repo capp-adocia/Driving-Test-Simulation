@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   preprocessor.h
- * \brief  Ԥ�������궨�壬���ڿ��ƴ������͵���
+ * \brief  预处理器宏定义，用于控制代码编译和调试
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -9,23 +9,55 @@
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
 
+ //========================================
+ //         !平台无关通用配置
+ //========================================
+
+ /* 相机系统配置 */
+ // 选择相机控制类型：游戏相机 / 载具相机
+#define CameraControlType GameCameraControl  // 默认游戏相机控制
+// #define CameraControlType vehicleCameraControl  // 载具相机控制（需配合物理系统使用）
+
+/* SDL主循环处理 */
+#define SDL_MAIN_HANDLED  // 禁用SDL默认主循环
+
+
+//========================================
+//         !平台相关配置
+//========================================
+
+#if defined(_WIN32)
+//-------------------------------
+//       !Windows平台配置
+//-------------------------------
+#include <windows.h>    // Windows核心头文件
+#include <Psapi.h>      // 进程状态API
+#include <direct.h>
+// 调试模式配置
 #ifdef DEBUG
-/* !DEBUG */
-#define CameraControlType GameCameraControl
-//#define CameraControlType vehicleCameraControl
+#define VLD_CHECK  // 启用内存泄漏检测
 #else
-/* !RELEASE */
 
 #endif // DEBUG
 
-/* Platform */
-#if defined(_WIN32)
-#include <windows.h>
-#include <Psapi.h>
-#else
+//-------------------------------
+#else  // !非Windows平台
+//-------------------------------
+//   Linux/macOS通用配置
 #include <time.h>
 #include <sys/resource.h>
-#endif
+
+// 调试模式配置
+#ifdef DEBUG
+    // UNIX调试工具配置
+#define USE_VALGRIND  // Valgrind内存检测标记
+
+#else
+#pragma GCC optimize("O3")  // GCC最大优化
+#endif // DEBUG
+
+#endif // 平台判断结束
+
 
 
 #endif // PREPROCESSOR_H

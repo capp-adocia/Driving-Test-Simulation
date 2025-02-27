@@ -22,5 +22,9 @@
 #include <thread>
 #include <cmath>
 #include <limits>
+#include <cstdint>
+#include <atomic>
+#include <iomanip>
+#include <ctime>
 
 #endif // STANDARD_H
