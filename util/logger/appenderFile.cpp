@@ -8,22 +8,23 @@
  *********************************************************************/
 #include "appenderFile.h"
 #include "../common/preprocessor.h"
+#include "../logger/log.h"
 
 AppenderFile::AppenderFile(const std::string& folderName) {
     m_folderName = folderName;
     if (!createDirectory(m_folderName)) {
-        std::cerr << "Failed to create directory: " << m_folderName << std::endl;
+        LOG_ERROR("Failed to create directory: " + m_folderName);
     }
 
     std::string dateFolder = m_folderName + "/" + getCurrentDate();
     if (!createDirectory(dateFolder)) {
-        std::cerr << "Failed to create directory: " << dateFolder << std::endl;
+        LOG_ERROR("Failed to create directory: " + dateFolder);
     }
 
     std::string logFilePath = getLogFilePath();
     m_file.open(logFilePath, std::ios::app);
     if (!m_file.is_open()) {
-        std::cerr << "Failed to open log file: " << logFilePath << std::endl;
+        LOG_ERROR("Failed to open log file: " + logFilePath);
     }
 }
 
@@ -39,19 +40,20 @@ void AppenderFile::append(LogLevel level, const std::string& logMessage) {
     if (m_file.is_open()) {
         switch (level) {
         case LogLevel::LOG_LEVEL_DEBUG:
-            m_file << "[DEBUG] " << logMessage << std::endl;
+            m_file << DEBUG_S << logMessage << std::endl;
             break;
         case LogLevel::LOG_LEVEL_INFO:
-            m_file << "[INFO] " << logMessage << std::endl;
+            m_file << INFO_S << logMessage << std::endl;
             break;
         case LogLevel::LOG_LEVEL_WARN:
-            m_file << "[WARN] " << logMessage << std::endl;
+            m_file << WARN_S << logMessage << std::endl;
             break;
         case LogLevel::LOG_LEVEL_ERROR:
-            m_file << "[ERROR] " << logMessage << std::endl;
+            m_file << ERROR_S << logMessage << std::endl;
+            ASSERT;
             break;
         default:
-            std::cerr << "Invalid log level" << std::endl;
+            LOG_ERROR("Invalid log level");
             break;
         }
     }

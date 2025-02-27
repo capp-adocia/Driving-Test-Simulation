@@ -268,6 +268,10 @@ void renderIMGUI()
 }
 
 int main(int /*argc*/, char* /*argv[]*/) {
+	LOG_INIT(LOG_LEVEL_DEBUG, AppenderType::APD_CONSOLE | AppenderType::APD_FILE, "log");
+
+	LOG_INFO("Hello World!");
+
 	glApp.init(1280, 768, "ImGui+SDL2+OpenGL+PhysX");
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	// 设置回调函数
@@ -286,17 +290,6 @@ int main(int /*argc*/, char* /*argv[]*/) {
 	if (!initPhysics()) // 初始化物理引擎
 		assert(false && "Failed to initialize PhysX");
 	preparePhysics(); // 准备渲染图形
-
-	Logger::getInstance().init(LOG_LEVEL_DEBUG, std::make_shared<AppenderConsole>());
-	Logger::getInstance().addAppender(std::make_shared<AppenderFile>("log"));
-	LOG_INFO("Simple message");                   // [DEBUG] Simple message
-	LOG_INFO("Simple message");                   // [DEBUG] Simple message
-	LOG_DEBUG("Simple message");                   // [DEBUG] Simple message
-	LOG_DEBUG("Value: {}", 42);                    // [DEBUG] Value: 42
-	LOG_DEBUG("Pair: {}-{}", "A1", 3.14);          // [DEBUG] Pair: A1-3.14
-	LOG_WARN("Missing {}: {}", "config", 404);     // [WARN ] Missing config: 404
-	LOG_ERROR("Critical error in {}!", "moduleX"); // [FATAL] Critical error in moduleX!
-	LOG_ERROR("Critical error in {}!", "moduleX"); // [FATAL] Critical error in moduleX!
 
 	while (glApp.update()) {
 		stepPhysics();

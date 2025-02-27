@@ -11,6 +11,7 @@
 #define APPLICATION_H
 
 #include "../../util/common/opengl.h"
+#include "../../util/logger/log.h"
 
 #define glApp App::getInstance()
 
@@ -56,8 +57,7 @@ public:
         _width = width;
         _height = height;
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            std::cout << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
-            assert(false);
+            LOG_WARN("Failed to initialize SDL: {}", SDL_GetError());
         }
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -68,7 +68,7 @@ public:
         _window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
         if (_window == nullptr)
         {
-            std::cout << "Failed to create SDL window: " << SDL_GetError() << std::endl;
+            LOG_WARN("Failed to create SDL window: {}", SDL_GetError());
             SDL_Quit();
             assert(false);
         }
@@ -76,7 +76,7 @@ public:
         // 创建OpenGL上下文
         _context = SDL_GL_CreateContext(_window);
         if (_context == nullptr) {
-            std::cout << "Failed to create OpenGL context: " << SDL_GetError() << std::endl;
+            LOG_WARN("Failed to create OpenGL context: {}", SDL_GetError());
             SDL_DestroyWindow(_window);
             SDL_Quit();
             assert(false);
@@ -87,7 +87,7 @@ public:
 
         // 初始化GLAD
         if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
-            std::cout << "Failed to initialize GLAD" << std::endl;
+            LOG_WARN("Failed to initialize GLAD");
             SDL_GL_DeleteContext(_context);
             SDL_DestroyWindow(_window);
             SDL_Quit();

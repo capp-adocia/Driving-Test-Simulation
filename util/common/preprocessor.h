@@ -22,13 +22,16 @@
 #define SDL_MAIN_HANDLED  // 禁用SDL默认主循环
 
 
+
+
+
 //========================================
 //         !平台相关配置
 //========================================
 
-#if defined(_WIN32)
+#if defined(_WIN32) // !platform START
 //-------------------------------
-//       !Windows平台配置
+//       Windows平台配置
 //-------------------------------
 #include <windows.h>    // Windows核心头文件
 #include <Psapi.h>      // 进程状态API
@@ -41,7 +44,7 @@
 #endif // DEBUG
 
 //-------------------------------
-#else  // !非Windows平台
+#else  // 非Windows平台
 //-------------------------------
 //   Linux/macOS通用配置
 #include <time.h>
@@ -49,14 +52,14 @@
 
 // 调试模式配置
 #ifdef DEBUG
-    // UNIX调试工具配置
-#define USE_VALGRIND  // Valgrind内存检测标记
 
 #else
-#pragma GCC optimize("O3")  // GCC最大优化
-#endif // DEBUG
 
-#endif // 平台判断结束
+
+
+#endif
+
+#endif // !platform END
 
 
 

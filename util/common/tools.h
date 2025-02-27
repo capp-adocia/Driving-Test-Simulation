@@ -9,7 +9,14 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 #include "standard.h"
-#include <nlohmann/json.hpp>
+
+ /* 宏工具 */
+#define CONCAT(a, b) a##b
+
+/* 断言宏 配合log使用 */
+#define ASSERT \
+        std::cerr << "Assertion failed, in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+        std::abort(); \
 
 /* 字符串格式化实现 V1 */
 inline std::string formatMessage(const std::string& format) {

@@ -11,6 +11,8 @@
 
 #include "../common/preprocessor.h"
 #include "../common/standard.h"
+#include "../common/tools.h"
+#include "../logger/log.h"
 
 // 基准测试
 namespace Benchmark {
@@ -124,7 +126,7 @@ namespace Benchmark {
             }
             report << "\n  ]\n}";
             
-            std::cout<<"Benchmark report generated: " << filename << std::endl;
+            LOG_INFO("Benchmark report generated: {}", filename);
         }
 
         static Profiler& getInstance() {
@@ -141,6 +143,5 @@ namespace Benchmark {
 #define BENCHMARK_SCOPE(name) Profiler::Timer CONCAT(timer_, __LINE__)(Profiler::getInstance(), name)
 #define BENCHMARK_FUNCTION() BENCHMARK_SCOPE(__FUNCTION__)
 #define BENCHMARK_END Profiler::getInstance().generateReport()
-#define CONCAT(a, b) a##b
 }
 #endif // BENCHMARK_H

@@ -7,6 +7,7 @@
  * \date   February 2025
  *********************************************************************/
 #include "FrameBuffer.h"
+#include "../../util/logger/log.h"
 
 FrameBuffer::FrameBuffer(unsigned int width, unsigned int height)
 	: mWidth(width)
@@ -30,7 +31,7 @@ FrameBuffer::FrameBuffer(unsigned int width, unsigned int height)
 
 	// 检查帧缓冲对象是否完整
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "Error:FrameBuffer is not complete!" << std::endl;
+		LOG_ERROR("Error:FrameBuffer is not complete!");
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
