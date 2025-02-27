@@ -9,7 +9,7 @@
 #ifndef OPACITY_MASK_MATERIAL_H
 #define OPACITY_MASK_MATERIAL_H
 #include "material.h"
-#include "../texture.h"
+#include "../../resource/texture/texture.h"
 
 // 给材质上蒙版
 class OpacityMaskMaterial : public Material

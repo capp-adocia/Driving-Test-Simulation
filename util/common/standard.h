@@ -18,5 +18,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <mutex>
+#include <thread>
+#include <cmath>
+#include <limits>
 
 #endif // STANDARD_H

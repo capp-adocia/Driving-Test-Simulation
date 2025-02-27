@@ -10,7 +10,7 @@
 #define GRASSINSTANCEMATERIAL_H
 
 #include "material.h"
-#include "../texture.h"
+#include "../../resource/texture/texture.h"
 
 class GrassInstanceMaterial : public Material
 {

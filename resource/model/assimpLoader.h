@@ -8,15 +8,15 @@
  *********************************************************************/
 #ifndef ASSIMPLOADER_H
 #define ASSIMPLOADER_H
-#include "../glframework/core.h"
-#include "../glframework/object.h"
+#include "../../render/core.h"
+#include "../../render/object.h"
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 
-#include "../glframework/mesh/mesh.h"
-#include "../glframework/texture.h"
+#include "../../render/mesh/mesh.h"
+#include "../../resource/texture/texture.h"
 
 class AssimpLoader {
 public:

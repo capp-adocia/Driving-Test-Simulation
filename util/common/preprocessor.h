@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   preprocessor.h
- * \brief  预处理器宏定义，用于控制代码编译
+ * \brief  预处理器宏定义，用于控制代码编译和调试
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -9,18 +9,23 @@
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
 
-
 #ifdef DEBUG
+/* !DEBUG */
 #define CameraControlType GameCameraControl
+//#define CameraControlType vehicleCameraControl
 #else
-#define CameraControlType vehicleCameraControl
+/* !RELEASE */
+
 #endif // DEBUG
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
+/* Platform */
+#if defined(_WIN32)
+#include <windows.h>
+#include <Psapi.h>
+#else
+#include <time.h>
+#include <sys/resource.h>
 #endif
-
-
 
 
 #endif // PREPROCESSOR_H

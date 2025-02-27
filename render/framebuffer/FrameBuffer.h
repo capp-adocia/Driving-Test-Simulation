@@ -9,7 +9,7 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 #include "../core.h"
-#include "../texture.h"
+#include "../../resource/texture/texture.h"
 
 class FrameBuffer
 {

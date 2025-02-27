@@ -1,18 +1,16 @@
 ﻿/*****************************************************************//**
- * \file   assimpInstanceLoader.cpp
+ * \file   assimpLoader.cpp
  * \brief  
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
  * \date   February 2025
  *********************************************************************/
-#include "assimpInstanceLoader.h"
-#include "../glframework/tools/tools.h"
-#include "../glframework/material/GrassInstanceMaterial.h"
+#include "assimpLoader.h"
+#include "../../util/math/math.h"
+#include "../../render/material/phongMaterial.h"
 
-std::shared_ptr<Object> AssimpInstanceLoader::load(const std::string& path
-    , const unsigned int instanceCount)
-{
+std::shared_ptr<Object> AssimpLoader::load(const std::string& path) {
     std::size_t lastIndex = path.find_last_of("//");
     auto rootPath = path.substr(0, lastIndex + 1);
 
@@ -20,25 +18,28 @@ std::shared_ptr<Object> AssimpInstanceLoader::load(const std::string& path
     auto rootNode = std::make_shared<Object>();
 
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenNormals);
+    const aiScene* scene = importer.ReadFile(path
+        , aiProcess_Triangulate
+        | aiProcess_GenNormals
+    );
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         assert(false && "Error: Model Read Failed!");
+        return nullptr;
     }
 
-    processNode(scene->mRootNode, rootNode, scene, rootPath, instanceCount);
+    processNode(scene->mRootNode, rootNode, scene, rootPath);
 
     return rootNode;
 }
 
-void AssimpInstanceLoader::processNode(aiNode* ainode, std::shared_ptr<Object> parent, const aiScene* scene, const std::string& rootPath, const unsigned int instanceCount)
-{
+void AssimpLoader::processNode(aiNode* ainode, std::shared_ptr<Object> parent, const aiScene* scene, const std::string& rootPath) {
     auto node = std::make_shared<Object>();
     parent->addChild(node);
     glm::mat4 localMatrix = getMat4f(ainode->mTransformation);
 
     glm::vec3 position, eulerAngle, scale;
-    Tools::decompose(localMatrix, position, eulerAngle, scale);
+    MTools::Decompose(localMatrix, position, eulerAngle, scale);
     node->setPosition(position);
     node->setAngleX(eulerAngle.x);
     node->setAngleY(eulerAngle.y);
@@ -48,23 +49,22 @@ void AssimpInstanceLoader::processNode(aiNode* ainode, std::shared_ptr<Object> p
     for (size_t i = 0; i < ainode->mNumMeshes; i++) {
         int meshID = ainode->mMeshes[i];
         aiMesh* aimesh = scene->mMeshes[meshID];
-        auto mesh = processMesh(aimesh, scene, rootPath, instanceCount);
+        auto mesh = processMesh(aimesh, scene, rootPath);
         node->addChild(mesh);
     }
 
     // 递归处理所有子节点
     for (size_t i = 0; i < ainode->mNumChildren; i++) {
-        processNode(ainode->mChildren[i], node, scene, rootPath, instanceCount);
+        processNode(ainode->mChildren[i], node, scene, rootPath);
     }
 }
 
-std::shared_ptr<InstanceMesh> AssimpInstanceLoader::processMesh(aiMesh* aimesh, const aiScene* scene, const std::string& rootPath, const unsigned int instanceCount)
-{
+std::shared_ptr<Mesh> AssimpLoader::processMesh(aiMesh* aimesh, const aiScene* scene, const std::string& rootPath) {
     std::vector<float> positions;
     std::vector<float> normals;
     std::vector<float> uvs;
     std::vector<unsigned int> indices;
-    std::vector<float> colors;
+
     // 处理顶点数据
     for (size_t i = 0; i < aimesh->mNumVertices; i++) {
         positions.push_back(aimesh->mVertices[i].x);
@@ -74,13 +74,6 @@ std::shared_ptr<InstanceMesh> AssimpInstanceLoader::processMesh(aiMesh* aimesh, 
         normals.push_back(aimesh->mNormals[i].x);
         normals.push_back(aimesh->mNormals[i].y);
         normals.push_back(aimesh->mNormals[i].z);
-
-        if (aimesh->HasVertexColors(0)) // 判断是否有颜色数据
-        {
-            colors.push_back(aimesh->mColors[0][i].r);
-            colors.push_back(aimesh->mColors[0][i].g);
-            colors.push_back(aimesh->mColors[0][i].b);
-        }
 
         if (aimesh->mTextureCoords[0]) {
             uvs.push_back(aimesh->mTextureCoords[0][i].x);
@@ -101,37 +94,47 @@ std::shared_ptr<InstanceMesh> AssimpInstanceLoader::processMesh(aiMesh* aimesh, 
     }
 
     // 创建几何体对象
-    std::shared_ptr<Geometry> geometry = std::make_shared<Geometry>(positions, normals, uvs, colors, indices);
-    std::shared_ptr<GrassInstanceMaterial> material = std::make_shared<GrassInstanceMaterial>();
+    std::shared_ptr<Geometry> geometry = std::make_shared<Geometry>(positions, normals, uvs, indices);
+    std::shared_ptr<PhongMaterial> material = std::make_shared<PhongMaterial>();
     //material->setDepthWrite(false);
     // 处理材质
-    std::shared_ptr<Texture> texture = nullptr;
     if (aimesh->mMaterialIndex >= 0)
     {
+        std::shared_ptr<Texture> texture = nullptr;
         aiMaterial* aiMat = scene->mMaterials[aimesh->mMaterialIndex];
         // 读取diffuse贴图
-        texture = processTexture(aiMat, aiTextureType_DIFFUSE, scene, rootPath, instanceCount);
+        texture = processTexture(aiMat, aiTextureType_DIFFUSE, scene, rootPath);
         if (!texture)
         {
             texture = Texture::createTexture("assets/textures/defaultTexture.jpg", 0);
         }
         texture->setUnit(0);
         material->mDiffuse = texture;
+        // 读取specular贴图
+        auto specularMask = processTexture(aiMat, aiTextureType_SPECULAR, scene, rootPath);
+        if (!specularMask)
+        {
+            specularMask = Texture::createTexture("assets/textures/defaultTexture.jpg", 0);
+        }
+        specularMask->setUnit(1);
+
+        material->mSpecularMask = specularMask;
     }
     else
     {
         material->mDiffuse = Texture::createTexture("assets/textures/defaultTexture.jpg", 0);
     }
-    // 创建并返回 InstanceMesh 对象
-    return std::make_shared<InstanceMesh>(geometry, material, instanceCount);
+
+    // 创建并返回 Mesh 对象
+    return std::make_shared<Mesh>(geometry, material);
 }
 
-std::shared_ptr<Texture> AssimpInstanceLoader::processTexture(
-    const aiMaterial* aimat
-    , const aiTextureType& type
-    , const aiScene* scene
-    , const std::string& rootPath
-    , const unsigned int) 
+std::shared_ptr<Texture> AssimpLoader::processTexture(
+    const aiMaterial* aimat,
+    const aiTextureType& type,
+    const aiScene* scene,
+    const std::string& rootPath
+) 
 {
     std::shared_ptr<Texture> texture = nullptr;
 
@@ -160,7 +163,7 @@ std::shared_ptr<Texture> AssimpInstanceLoader::processTexture(
     return texture;
 }
 
-glm::mat4 AssimpInstanceLoader::getMat4f(aiMatrix4x4 value) {
+glm::mat4 AssimpLoader::getMat4f(aiMatrix4x4 value) {
     glm::mat4 to(
         value.a1, value.a2, value.a3, value.a4,
         value.b1, value.b2, value.b3, value.b4,

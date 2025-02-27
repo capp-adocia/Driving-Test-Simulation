@@ -9,15 +9,15 @@
 
 #define SDL_MAIN_HANDLED
  //#include <vld.h>
+#include "util/common/preprocessor.h" // 先包含windows.h再包含glad.h
 #include <iostream>
-
-#include "glframework/core.h"
-#include "glframework/shader.h"
+#include "render/core.h"
+#include "render/shader.h"
 #include <string>
 #include <assert.h>
 #include "util/common/opengl.h"
 #include "application/Application.h"
-#include "glframework/texture.h"
+#include "resource/texture/texture.h"
 
 #include "application/camera/perspectiveCamera.h"
 #include "application/camera/orthographicCamera.h"
@@ -25,29 +25,28 @@
 #include "application/camera/GameCameraControl.h"
 #include "application/camera/vehicleCameraControl.h"
 
-#include "glframework/geometry.h"
-#include "glframework/material/phongMaterial.h"
-#include "glframework/material/whiteMaterial.h"
+#include "render/geometry.h"
+#include "render/material/phongMaterial.h"
+#include "render/material/whiteMaterial.h"
 
-#include "glframework/mesh/mesh.h"
-#include "glframework/renderer/renderer.h"
-#include "glframework/light/pointLight.h"
-#include "glframework/light/spotLight.h"
+#include "render/mesh/mesh.h"
+#include "render/renderer/renderer.h"
+#include "render/light/pointLight.h"
+#include "render/light/spotLight.h"
 
-#include "glframework/scene.h"
-#include "application/assimpLoader.h"
-#include "glframework/material/depth.h"
-#include "glframework/material/opacityMaskMaterial.h"
-#include "glframework/material/screenMaterial.h"
-#include "glframework/framebuffer/FrameBuffer.h"
-#include "glframework/material/cubeMaterial.h"
-#include "glframework/material/phongEnvMaterial.h"
-#include "glframework/material/phongInstanceMaterial.h"
-#include "glframework/material/GrassInstanceMaterial.h"
-#include "glframework/mesh/InstanceMesh.h"
+#include "render/scene.h"
+#include "resource/model/assimpLoader.h"
+#include "render/material/depth.h"
+#include "render/material/opacityMaskMaterial.h"
+#include "render/material/screenMaterial.h"
+#include "render/framebuffer/FrameBuffer.h"
+#include "render/material/cubeMaterial.h"
+#include "render/material/phongEnvMaterial.h"
+#include "render/material/phongInstanceMaterial.h"
+#include "render/material/GrassInstanceMaterial.h"
+#include "render/mesh/InstanceMesh.h"
 #include "./physics/physx_tool.h"
-#include "util/common/preprocessor.h"
-
+#include "util/profiler/profiler.h"
 
 
 std::unique_ptr<Renderer> renderer = nullptr;
@@ -284,6 +283,10 @@ int main(int /*argc*/, char* /*argv[]*/) {
 	if (!initPhysics()) // 初始化物理引擎
 		assert(false && "Failed to initialize PhysX");
 	preparePhysics(); // 准备渲染图形
+	
+	PROFILE_SCOPE("333");
+	// 生成报告
+	Profiler::getInstance().generateReport();
 
 	while (glApp.update()) {
 		stepPhysics();

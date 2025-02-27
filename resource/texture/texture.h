@@ -9,7 +9,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include"core.h"
+#include "../../render/core.h"
 #include <string>
 #include <unordered_map>
 

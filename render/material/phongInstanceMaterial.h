@@ -10,7 +10,7 @@
 #define PHONGINSTANCEMATERIAL_H
 
 #include "material.h"
-#include "../texture.h"
+#include "../../resource/texture/texture.h"
 
 class PhongInstanceMaterial : public Material
 {

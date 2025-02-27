@@ -9,7 +9,7 @@
 #ifndef SCREENMATERIAL_H
 #define SCREENMATERIAL_H
 #include "material.h"
-#include "../texture.h"
+#include "../../resource/texture/texture.h"
 
 class ScreenMaterial : public Material {
 public:

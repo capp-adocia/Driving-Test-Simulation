@@ -11,7 +11,7 @@
 
 #include <physx/PxPhysicsAPI.h>
 #include "EngineDrivetrain.h"
-#include "../application/assimpLoader.h"
+#include "../../resource/model/assimpLoader.h"
 
 using namespace physx;
 using namespace physx::vehicle2;

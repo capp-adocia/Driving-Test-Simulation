@@ -8,15 +8,15 @@
  *********************************************************************/
 #ifndef ASSIMPINSTANCELOADER_H
 #define ASSIMPINSTANCELOADER_H
-#include "../glframework/core.h"
-#include "../glframework/object.h"
+#include "../../render/core.h"
+#include "../../render/object.h"
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 
-#include "../glframework/mesh/InstanceMesh.h"
-#include "../glframework/texture.h"
+#include "../../render/mesh/InstanceMesh.h"
+#include "../../resource/texture/texture.h"
 
 class AssimpInstanceLoader {
 public:

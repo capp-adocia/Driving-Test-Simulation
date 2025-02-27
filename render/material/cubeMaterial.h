@@ -10,7 +10,7 @@
 #define CUBEMATERIAL_H
 
 #include "material.h"
-#include "../texture.h"
+#include "../../resource/texture/texture.h"
 
 class CubeMaterial : public Material {
 public:

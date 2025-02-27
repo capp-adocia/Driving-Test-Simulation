@@ -43,11 +43,12 @@ link_directories(
 # 添加子目录
 set(SUBDIRECTORIES
     application
-    glframework
+    render
     physics
     imgui
     core
     util
+    resource
 )
 
 foreach(subdir ${SUBDIRECTORIES})
@@ -80,9 +81,10 @@ target_link_libraries(OpenGL_PhysX_SDL2
     PRIVATE
     ${LIBRARIES}
     app
-    fw
+    render
     physics
     imgui
     core
     util
+    resource
 )

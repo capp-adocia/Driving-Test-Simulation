@@ -8,8 +8,8 @@
  *********************************************************************/
 #include "texture.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "../application/stb_image.h"
-#include "../application/Application.h"
+#include "../../application/stb_image.h"
+#include "../../application/Application.h"
 
 std::unordered_map<std::string, std::shared_ptr<Texture>> Texture::mTextureCache{};
 
