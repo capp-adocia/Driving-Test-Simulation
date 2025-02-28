@@ -268,9 +268,16 @@ void renderIMGUI()
 }
 
 int main(int /*argc*/, char* /*argv[]*/) {
+#ifdef DEBUG
 	LOG_INIT(LOG_LEVEL_DEBUG, AppenderType::APD_CONSOLE | AppenderType::APD_FILE, "log");
-
-	LOG_INFO("Hello World!");
+#else
+	LOG_INIT(LOG_LEVEL_INFO, AppenderType::APD_FILE, "log");
+#endif // DEBUG
+	LOG_DEBUG("Hello, World! {}", 123);
+	LOG_INFO("Hello, World! {}", 123);
+	LOG_WARN("Hello, World! {}", 123);
+	LOG_WARN("Hello, World! {}", 123);
+	LOG_INFO("Hello, World! {}", 123);
 
 	glApp.init(1280, 768, "ImGui+SDL2+OpenGL+PhysX");
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -288,7 +295,7 @@ int main(int /*argc*/, char* /*argv[]*/) {
 	prepare(); // 准备其他资源
 	initIMGUI(); // 初始化IMGUI
 	if (!initPhysics()) // 初始化物理引擎
-		assert(false && "Failed to initialize PhysX");
+		LOG_ERROR("Failed to initialize PhysX");
 	preparePhysics(); // 准备渲染图形
 
 	while (glApp.update()) {

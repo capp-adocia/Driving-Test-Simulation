@@ -13,10 +13,14 @@
  /* 宏工具 */
 #define CONCAT(a, b) a##b
 
+/* 调试日志输出宏 */
+#define CERR std::cerr
+
 /* 断言宏 配合log使用 */
-#define ASSERT \
-        std::cerr << "Assertion failed, in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+#define ASSERT(x) do{\
+        CERR << " Assertion " << x << "failed, in " << __FILE__ << " at line " << __LINE__ << std::endl; \
         std::abort(); \
+    } while(0);
 
 /* 字符串格式化实现 V1 */
 inline std::string formatMessage(const std::string& format) {
@@ -24,14 +28,28 @@ inline std::string formatMessage(const std::string& format) {
 }
 /* 字符串格式化实现 V2 */
 template <typename T, typename... Args>
-inline std::string formatMessage(const std::string& format, T&& value, Args&&... args) {
+std::string formatMessage(const std::string& format, T&& first, Args&&... args) {
     size_t pos = format.find("{}");
-    if (pos == std::string::npos) return format;
+    if (pos == std::string::npos) {
+        return format;
+    }
+    std::ostringstream stream;
+    stream << format.substr(0, pos) << std::forward<T>(first);
+    return stream.str() + formatMessage(format.substr(pos + 2), std::forward<Args>(args)...);
+}
 
-    std::ostringstream oss;
-    oss << value;
-    return format.substr(0, pos) + oss.str() +
-        formatMessage(format.substr(pos + 2), std::forward<Args>(args)...);
+/* 获取最后一个cpp或h文件 */
+static std::string getLastCppOrHFile(const std::string& path) {
+    size_t lastSlash = path.find_last_of("/\\");
+    std::string fileName = (lastSlash == std::string::npos) ? path : path.substr(lastSlash + 1);
+    size_t dotPos = fileName.find_last_of('.');
+    if (dotPos != std::string::npos) {
+        std::string ext = fileName.substr(dotPos);
+        if (ext == ".cpp" || ext == ".h") {
+            return fileName;
+        }
+    }
+    return "";
 }
 
 #endif // TOOLS_H

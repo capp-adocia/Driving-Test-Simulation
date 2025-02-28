@@ -42,7 +42,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 		fragmentCode = fShaderStream.str();
 	}
 	catch (std::ifstream::failure& e) {
-		std::cout << "ERROR: Shader File Error: " << e.what() << std::endl;
+		LOG_WARN("Shader File Error: {}", e.what());
 	}
 
 	const char* vertexShaderSource = vertexCode.c_str();
@@ -168,17 +168,17 @@ void Shader::checkShaderErrors(GLuint target, std::string type) {
 		glGetShaderiv(target, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(target, 1024, NULL, infoLog);
-			std::cout << "Error: SHADER COMPILE ERROR" << "\n" << infoLog << std::endl;
+			LOG_WARN("\nError: SHADER COMPILE ERROR {}", infoLog);
 		}
 	}
 	else if (type == "LINK") {
 		glGetProgramiv(target, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(target, 1024, NULL, infoLog);
-			std::cout << "Error: SHADER LINK ERROR " << "\n" << infoLog << std::endl;
+			LOG_WARN("\nError: SHADER LINK ERROR {}", infoLog);
 		}
 	}
 	else {
-		std::cout << "Error: Check shader errors Type is wrong" << std::endl;
+		LOG_WARN("\nError: Check shader errors Type is wrong");
 	}
 }

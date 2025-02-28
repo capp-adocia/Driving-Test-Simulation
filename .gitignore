@@ -373,3 +373,5 @@ bin/
 *.7z
 # assets
 assets/
+# xmind
+*.xmind

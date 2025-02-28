@@ -21,6 +21,7 @@
 #include "../framebuffer/FrameBuffer.h"
 #include <string>
 #include <algorithm>
+#include "../../util/logger/log.h"
 
 Renderer::Renderer() 
 	: mGlobalMaterial(nullptr)
@@ -170,7 +171,7 @@ std::shared_ptr<Shader> Renderer::pickShader(MaterialType type)
 		result = mGrassInstShader;
 		break;
 	default:
-		std::cout << "Unknown material type to pick shader" << std::endl;
+		LOG_WARN("Unknown material type to pick shader");
 		break;
 	}
 	return result;

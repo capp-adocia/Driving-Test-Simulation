@@ -7,6 +7,7 @@
  * \date   February 2025
  *********************************************************************/
 #include "opengl.h"
+#include "../logger/log.h"
 
 void checkError()
 {
@@ -21,11 +22,6 @@ void checkError()
 		case GL_OUT_OF_MEMORY: error = "OUT OF MEMORY"; break;
 		default:error = "UNKNOWN"; break;
 		}
-		std::cout << error << std::endl;
-
-		//assert会根据传入的bool值，来决定程序是否停止
-		//true：程序顺利运行
-		//false：程序会断死
-		assert(false);
+		LOG_ERROR(error);
 	}
 }

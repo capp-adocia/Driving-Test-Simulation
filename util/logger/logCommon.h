@@ -48,21 +48,20 @@ static void printColor(LogLevel level, const std::string& msg)
     switch (level)
     {
     case LOG_LEVEL_DEBUG:
-        std::cout << COLOR_DEBUG << DEBUG_S << COLOR_DEFAULT << msg << std::endl;
+        CERR << COLOR_DEBUG << DEBUG_S << COLOR_DEFAULT << msg << std::endl;
         break;
     case LOG_LEVEL_INFO:
-        std::cout << COLOR_INFO << INFO_S << COLOR_DEFAULT << msg << std::endl;
+        CERR << COLOR_INFO << INFO_S << COLOR_DEFAULT << msg << std::endl;
         break;
     case LOG_LEVEL_WARN:
-        std::cout << COLOR_WARN << WARN_S << COLOR_DEFAULT << msg << std::endl;
+        CERR << COLOR_WARN << WARN_S << COLOR_DEFAULT << msg << std::endl;
         break;
     case LOG_LEVEL_ERROR:
-        std::cout << COLOR_ERROR << ERROR_S << COLOR_DEFAULT << msg << std::endl;
+        CERR << COLOR_ERROR << ERROR_S << COLOR_DEFAULT << msg << std::endl;
         ASSERT(msg);
         break;
     default:
-        std::cout << "[UNKNOWN] " << msg << std::endl;
-        std::cerr << "Unknown log level" << std::endl;
+        CERR << "Unknown log level " << msg << std::endl;
         break;
     }
 }

@@ -31,7 +31,10 @@ AppenderFile::AppenderFile(const std::string& folderName) {
 AppenderFile::~AppenderFile() {
     if (m_file.is_open()) {
         m_file.close();
+        printColor(LOG_LEVEL_INFO, "Log file saved and closed!");
+        return;
     }
+    printColor(LOG_LEVEL_WARN, "Failed to close log file!");
 }
 
 void AppenderFile::append(LogLevel level, const std::string& logMessage) {
@@ -50,9 +53,10 @@ void AppenderFile::append(LogLevel level, const std::string& logMessage) {
             break;
         case LogLevel::LOG_LEVEL_ERROR:
             m_file << ERROR_S << logMessage << std::endl;
-            ASSERT;
+            ASSERT(logMessage);
             break;
         default:
+            m_file << "Invalid log level" << std::endl;
             LOG_ERROR("Invalid log level");
             break;
         }

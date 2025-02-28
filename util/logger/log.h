@@ -30,17 +30,26 @@ public:
     // 初始化日志系统，设置日志级别和 Appender
     void init(LogLevel level, uint8_t appenderTypes, const char* folder = "logs");
     // 设置日志级别
-    inline void setLogLevel(LogLevel level) { m_currentLevel = level; }
+    inline void setLogLevel(LogLevel level) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (level >= LOG_LEVEL_DEBUG && level <= LOG_LEVEL_ERROR) {
+            m_currentLevel = level;
+            return;
+        }
+        printColor(LOG_LEVEL_WARN, "Invalid log level!");
+    }
     inline LogLevel getLogLevel() const { return m_currentLevel; }
-    // 日志记录接口
     template <typename... Args>
-    void log(LogLevel level, const std::string& format, Args&&... args) {
+    void log(LogLevel level, const std::string& format, const char* file, int line, Args&&... args) {
         if (!m_init) {
             printColor(LOG_LEVEL_WARN, "Logger is not initialized!");
             return;
         }
         if (level < m_currentLevel) return;
         std::string message = formatMessage(format, std::forward<Args>(args)...);
+        const std::string fileName = getLastCppOrHFile(file);
+        message += " [File: " + fileName + ", Line: " + std::to_string(line) + "]";
+        // 输出日志
         outputLog(level, message);
     }
 
@@ -58,16 +67,16 @@ private:
 
 /* 日志级别宏定义 */
 #define LOG_DEBUG(format, ...) \
-    Logger::getInstance().log(LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
+    Logger::getInstance().log(LOG_LEVEL_DEBUG, format, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define LOG_INFO(format, ...)  \
-    Logger::getInstance().log(LOG_LEVEL_INFO, format, ##__VA_ARGS__)
+    Logger::getInstance().log(LOG_LEVEL_INFO, format, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define LOG_WARN(format, ...)  \
-    Logger::getInstance().log(LOG_LEVEL_WARN, format, ##__VA_ARGS__)
+    Logger::getInstance().log(LOG_LEVEL_WARN, format, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define LOG_ERROR(format, ...) \
-    Logger::getInstance().log(LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
+    Logger::getInstance().log(LOG_LEVEL_ERROR, format, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define LOG_INIT(level, appenderTypes, folder) \
     Logger::getInstance().init(level, appenderTypes, folder)

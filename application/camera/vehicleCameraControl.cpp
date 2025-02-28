@@ -7,6 +7,7 @@
  * \date   February 2025
  *********************************************************************/
 #include "vehicleCameraControl.h"
+#include "../../util/logger/log.h"
 
 VehicleCameraControl::VehicleCameraControl()
 	: Position(glm::vec3(0.0f, 0.0f, 0.0f))
@@ -17,8 +18,9 @@ VehicleCameraControl::~VehicleCameraControl() {}
 
 void VehicleCameraControl::update()
 {
-	assert(Position != glm::vec3(0.0f, 0.0f, 0.0f));
-	assert(CameraTarget != glm::vec3(0.0f, 0.0f, 0.0f));
+	if ((Position != glm::vec3(0.0f, 0.0f, 0.0f)) || (CameraTarget != glm::vec3(0.0f, 0.0f, 0.0f))) {
+		LOG_ERROR("Position or CameraTarget is not initialized!");
+	}
 	mCamera->mPosition = Position;
     mCamera->mFront = glm::normalize(CameraTarget - Position);
 }

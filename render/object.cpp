@@ -7,6 +7,7 @@
  * \date   February 2025
  *********************************************************************/
 #include "object.h"
+#include "../util/logger/log.h"
 
 Object::Object()
     : mModel(glm::mat4(1.0f))
@@ -80,7 +81,7 @@ void Object::addChild(std::shared_ptr<Object> obj) {
     // 检查是否曾经加入过这个孩子
     auto iter = std::find(mChildren.begin(), mChildren.end(), obj);
     if (iter != mChildren.end()) {
-        std::cerr << "Duplicated Child added" << std::endl;
+        LOG_ERROR("Duplicated Child added");
         return;
     }
     // 加入孩子
