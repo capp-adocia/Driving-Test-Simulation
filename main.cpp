@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   main.cpp
- * \brief 
+ * \brief  程序入口文件
  *
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -86,7 +86,9 @@ void OnKey(int key, int /*scancode*/, int action, int mods) {
 			handleThrottle(action); // forward
 			break;
 		case SDLK_KP_2:
-			handleBackward(action);
+#ifdef AUTOGEAR
+			handleBackward(action); // backward
+#endif
 			break;
 		case SDLK_KP_4:
 			handleSteering(action, true); // true left
@@ -96,6 +98,30 @@ void OnKey(int key, int /*scancode*/, int action, int mods) {
 			break;
 		case SDLK_SPACE:
 			createDynamic(PxTransform(PxVec3(0, 20, 2), PxQuat(1.0f, 0.0f, 0.0f, 0.0f)), PxSphereGeometry(0.5f), PxVec3(0., 1., 0.) * 10.0f);
+			break;
+		case SDLK_q:
+#ifdef MANUALGEAR
+			if (action == SDL_KEYDOWN && gVehicle.mTransmissionCommandState.clutch == 0.0f) {
+				gVehicle.mTransmissionCommandState.clutch = 1.0f;  // clutch
+			}
+			if (action == SDL_KEYUP && gVehicle.mTransmissionCommandState.clutch == 1.0f) {
+				gVehicle.mTransmissionCommandState.clutch = 0.0f;  // release clutch
+			}
+#endif
+			break;
+		case SDLK_w: // 手动挡 升档
+#ifdef MANUALGEAR
+			if (action == SDL_KEYDOWN && gVehicle.mTransmissionCommandState.clutch == 1.0f && gVehicle.mEngineDriveState.gearboxState.currentGear != 6) {
+				gVehicle.mTransmissionCommandState.targetGear = ++gVehicle.mEngineDriveState.gearboxState.currentGear;
+			}
+#endif
+			break;
+		case SDLK_e:
+#ifdef MANUALGEAR
+			if (action == SDL_KEYDOWN && gVehicle.mTransmissionCommandState.clutch == 1.0f && gVehicle.mEngineDriveState.gearboxState.currentGear != 0) {
+				gVehicle.mTransmissionCommandState.targetGear = --gVehicle.mEngineDriveState.gearboxState.currentGear;
+			}
+#endif
 			break;
 		default:
 			break;
@@ -248,12 +274,15 @@ void renderIMGUI()
 		// 计算速度的大小（即速度的模长）
 		float speedMagnitude = linVel1.magnitude();
 		float speedKmh = speedMagnitude * 3.6f; // 转成km/h
-		ImGui::Text("Speed: %.2f Km/h", speedKmh); // 显示速度的大小
+		ImGui::Text("Speed: %.2f km/h", speedKmh); // 显示速度的大小
 	}
 	// 挡位
 	{
 		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear);
 		ImGui::Text("Target Gear: %d", gVehicle.mEngineDriveState.gearboxState.targetGear);
+		ImGui::Text("Car Switch GearT: %.2f", gVehicle.mEngineDriveState.gearboxState.gearSwitchTime);
+		ImGui::Text("CommandState targetGear : %d", gVehicle.mTransmissionCommandState.targetGear);
+		ImGui::Text("CommandState clutch : %d:", gVehicle.mTransmissionCommandState.clutch);
 	}
 
 	ImGui::End();

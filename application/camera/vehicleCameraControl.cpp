@@ -18,7 +18,7 @@ VehicleCameraControl::~VehicleCameraControl() {}
 
 void VehicleCameraControl::update()
 {
-	if ((Position != glm::vec3(0.0f, 0.0f, 0.0f)) || (CameraTarget != glm::vec3(0.0f, 0.0f, 0.0f))) {
+	if ((Position == glm::vec3(0.0f, 0.0f, 0.0f)) || (CameraTarget == glm::vec3(0.0f, 0.0f, 0.0f))) {
 		LOG_ERROR("Position or CameraTarget is not initialized!");
 	}
 	mCamera->mPosition = Position;

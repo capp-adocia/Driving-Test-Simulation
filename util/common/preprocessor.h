@@ -15,12 +15,15 @@
 
  /* 相机系统配置 */
  // 选择相机控制类型：游戏相机 / 载具相机
-#define CameraControlType GameCameraControl  // 默认游戏相机控制
-// #define CameraControlType vehicleCameraControl  // 载具相机控制（需配合物理系统使用）
+//#define CameraControlType GameCameraControl  // 默认游戏相机控制
+#define CameraControlType VehicleCameraControl  // 载具相机控制（需配合物理系统使用）
 
 /* SDL主循环处理 */
 #define SDL_MAIN_HANDLED  // 禁用SDL默认主循环
 
+/* 车辆手动挡和自动挡 */
+#define MANUALGEAR  // 手动挡
+//#define AUTOGEAR    // 自动挡
 
 
 

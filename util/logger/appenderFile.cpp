@@ -29,7 +29,9 @@ AppenderFile::AppenderFile(const std::string& folderName) {
 }
 
 AppenderFile::~AppenderFile() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     if (m_file.is_open()) {
+        m_file << std::endl;
         m_file.close();
         printColor(LOG_LEVEL_INFO, "Log file saved and closed!");
         return;

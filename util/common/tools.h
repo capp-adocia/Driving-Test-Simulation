@@ -18,7 +18,7 @@
 
 /* 断言宏 配合log使用 */
 #define ASSERT(x) do{\
-        CERR << " Assertion " << x << "failed, in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+        CERR << " Assertion " << x << "failed" << std::endl; \
         std::abort(); \
     } while(0);
 

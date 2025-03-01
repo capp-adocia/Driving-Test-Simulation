@@ -12,6 +12,7 @@
 #include <physx/PxPhysicsAPI.h>
 #include "EngineDrivetrain.h"
 #include "../../resource/model/assimpLoader.h"
+#include "../../util/common/preprocessor.h"
 
 using namespace physx;
 using namespace physx::vehicle2;
@@ -111,23 +112,25 @@ EngineDriveVehicle gVehicle; // 第一辆车
 // 设置前进
 void throttle()
 {
+#ifdef AUTOGEAR
+	gVehicle.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
+#endif // MANUALGEAR
 	// 设置油门
 	gVehicle.mCommandState.throttle = 0.8f;  // 油门
 	gVehicle.mCommandState.brakes[0] = 0.0f;  // 刹车保持关闭
 	gVehicle.mCommandState.brakes[1] = 0.0f;  // 刹车保持关闭
 
-	gVehicle.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
 }
 
-// 设置后退
+// 自动挡设置后退
 void backward()
 {
+	gVehicle.mTransmissionCommandState.targetGear = 0;
 	// 设置油门为负值，使车辆后退
-	gVehicle.mCommandState.throttle = 1.0f;  // 油门
+	gVehicle.mCommandState.throttle = 0.8f;  // 油门
 	gVehicle.mCommandState.brakes[0] = 0.0f;   // 刹车关闭
 	gVehicle.mCommandState.brakes[1] = 0.0f;   // 刹车关闭
 
-	gVehicle.mTransmissionCommandState.targetGear = 0;
 }
 // 刹车
 void brake()
@@ -183,6 +186,7 @@ void handleBackward(int action) {
 		brake();
 	}
 }
+
 void handleSteering(int action, bool isLeft) {
 	switch (action)
 	{
@@ -320,7 +324,7 @@ bool initVehicles()
 	gVehicle.setUpActor(*gScene, pose1, "EngineDrive1");
 
 	gVehicle.mEngineDriveState.gearboxState.currentGear = 1;
-	gVehicle.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
+	gVehicle.mEngineDriveState.gearboxState.targetGear = 1;
 
 	// 初始化模拟上下文
 	gVehicleSimulationContext.setToDefault();
@@ -641,13 +645,14 @@ void LoadBaseParams(BaseVehicleParams& baseParams)
 
 void LoadEngineDrivertrainParams(EngineDrivetrainParams& engineDrivetrainParams)
 {
+	// 自动挡专用
+#ifdef AUTOGEAR
 	float defaultRatio = 0.65f;
 	for (int i = 0; i < 7; ++i) engineDrivetrainParams.autoboxParams.upRatios[i] = defaultRatio;
 	engineDrivetrainParams.autoboxParams.upRatios[1] = 0.15f;
-
 	for (int i = 0; i < 7; ++i) engineDrivetrainParams.autoboxParams.downRatios[i] = 0.5f;
-
 	engineDrivetrainParams.autoboxParams.latency = 2.0f;
+#endif // AUTOGEAR
 	engineDrivetrainParams.clutchCommandResponseParams.maxResponse = 10.0f;
 	engineDrivetrainParams.engineParams.torqueCurve.addPair(0.0f, 1.0f);
 	engineDrivetrainParams.engineParams.torqueCurve.addPair(0.33f, 1.0f);
