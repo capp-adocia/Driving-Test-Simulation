@@ -46,8 +46,8 @@ public:
             return;
         }
         if (level < m_currentLevel) return;
-        std::string message = formatMessage(format, std::forward<Args>(args)...);
-        const std::string fileName = getLastCppOrHFile(file);
+        std::string message = Util::formatMessage(format, std::forward<Args>(args)...);
+        const std::string fileName = Util::getLastCppOrHFile(file);
         message += " [File: " + fileName + ", Line: " + std::to_string(line) + "]";
         // 输出日志
         outputLog(level, message);

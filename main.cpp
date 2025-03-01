@@ -12,11 +12,8 @@
 #ifdef VLD_CHECK
 #include <vld.h>
 #endif // VLD_CHECK
-#include <iostream>
 #include "render/core.h"
 #include "render/shader.h"
-#include <string>
-#include <assert.h>
 #include "util/common/opengl.h"
 #include "application/Application.h"
 #include "resource/texture/texture.h"
@@ -50,6 +47,8 @@
 #include "./physics/physx_tool.h"
 #include "util/profiler/benchmark.h"
 #include "util/logger/log.h"
+#include "core/EventBus.h"
+#include "util/profiler/UnitTest.h"
 
 std::unique_ptr<Renderer> renderer = nullptr;
 std::shared_ptr<Scene> sceneInscreen = nullptr;
@@ -278,11 +277,7 @@ void renderIMGUI()
 	}
 	// 挡位
 	{
-		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear);
-		ImGui::Text("Target Gear: %d", gVehicle.mEngineDriveState.gearboxState.targetGear);
-		ImGui::Text("Car Switch GearT: %.2f", gVehicle.mEngineDriveState.gearboxState.gearSwitchTime);
-		ImGui::Text("CommandState targetGear : %d", gVehicle.mTransmissionCommandState.targetGear);
-		ImGui::Text("CommandState clutch : %d:", gVehicle.mTransmissionCommandState.clutch);
+		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear); // 显示当前挡位
 	}
 
 	ImGui::End();
@@ -296,17 +291,18 @@ void renderIMGUI()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-int main(int /*argc*/, char* /*argv[]*/) {
+int main(int argc, char* argv[]) {
 #ifdef DEBUG
 	LOG_INIT(LOG_LEVEL_DEBUG, AppenderType::APD_CONSOLE | AppenderType::APD_FILE, "log");
 #else
 	LOG_INIT(LOG_LEVEL_INFO, AppenderType::APD_FILE, "log");
 #endif // DEBUG
-	LOG_DEBUG("Hello, World! {}", 123);
-	LOG_INFO("Hello, World! {}", 123);
-	LOG_WARN("Hello, World! {}", 123);
-	LOG_WARN("Hello, World! {}", 123);
-	LOG_INFO("Hello, World! {}", 123);
+
+#ifdef UNIT_T
+	/* Unit Test Enabled */
+	LOG_INFO("Enable Unit Test");
+	UNIT_TEST;
+#endif // UNIT_T
 
 	glApp.init(1280, 768, "ImGui+SDL2+OpenGL+PhysX");
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

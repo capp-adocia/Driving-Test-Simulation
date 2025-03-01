@@ -344,7 +344,7 @@ void preparePhysics()
 	/* opengl对应图形 */
 	auto planeGeometry = Geometry::createBox(800.f, 0.1f, 800.f);
 	auto planeMaterial = std::make_shared<PhongMaterial>();
-	planeMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/wall.jpg", 0, GL_SRGB_ALPHA);
+	planeMaterial->mDiffuse = std::make_shared<Texture>("C:\\Users\\Administrator\\Downloads\\rocky_terrain_02_2k.blend\\textures\\rocky_terrain_02_diff_2k.jpg", 0, GL_SRGB_ALPHA);
 	auto plane = std::make_shared<Mesh>(planeGeometry, planeMaterial);
 	scene->addChild(plane);
 

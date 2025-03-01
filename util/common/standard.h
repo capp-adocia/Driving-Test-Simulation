@@ -27,5 +27,6 @@
 #include <iomanip>
 #include <ctime>
 #include <assert.h>
+#include <typeindex>
 
 #endif // STANDARD_H

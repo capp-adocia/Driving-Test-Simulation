@@ -1,6 +1,6 @@
 ﻿﻿/*****************************************************************//**
  * \file   System.h
- * \brief  
+ * \brief  系统基类，处理不同的实体的逻辑
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/

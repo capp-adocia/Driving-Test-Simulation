@@ -144,4 +144,5 @@ namespace Benchmark {
 #define BENCHMARK_FUNCTION() BENCHMARK_SCOPE(__FUNCTION__)
 #define BENCHMARK_END Profiler::getInstance().generateReport()
 }
+
 #endif // BENCHMARK_H

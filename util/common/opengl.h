@@ -8,6 +8,7 @@
  *********************************************************************/
 #ifndef OPENGL_H
 #define OPENGL_H
+
 /* glad */
 #include <glad/glad.h>
 /* STL */
@@ -26,6 +27,8 @@
 #include "../../imgui/imgui_impl_opengl3.h"
 /* LOG */
 #include "../logger/log.h"
+/* ENTT */
+#include <entt/entt.hpp>
 
 #ifdef DEBUG
 #define GL_CALL(func)  func;checkError();
