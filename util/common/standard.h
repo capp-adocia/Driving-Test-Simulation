@@ -26,7 +26,7 @@
 #include <atomic>
 #include <iomanip>
 #include <ctime>
-#include <assert.h>
+#include <cassert>
 #include <typeindex>
 
 #endif // STANDARD_H

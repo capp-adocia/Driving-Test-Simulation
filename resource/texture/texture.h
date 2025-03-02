@@ -9,7 +9,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "../../render/core.h"
+#include "../../util/common/opengl.h"
 #include <string>
 #include <unordered_map>
 

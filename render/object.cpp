@@ -77,14 +77,13 @@ glm::mat4 Object::getModelPhysXMatrix() const { return mModel; }
 
 void Object::setModelMatrix(const glm::mat4& model) { this->mModel = model; }
 
+// 检查是否曾经加入过这个孩子
 void Object::addChild(std::shared_ptr<Object> obj) {
-    // 检查是否曾经加入过这个孩子
     auto iter = std::find(mChildren.begin(), mChildren.end(), obj);
     if (iter != mChildren.end()) {
         LOG_ERROR("Duplicated Child added");
         return;
     }
-    // 加入孩子
     mChildren.push_back(obj);
     // 设置孩子的父对象
     obj->setParent(shared_from_this());  // 使用 shared_from_this 获取父对象的 shared_ptr

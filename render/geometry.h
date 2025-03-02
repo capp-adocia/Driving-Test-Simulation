@@ -9,9 +9,7 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "core.h"
-#include <physx/PxPhysicsAPI.h>
-using namespace physx;
+#include "../../util/common/opengl.h"
 
 class Geometry {
 public:

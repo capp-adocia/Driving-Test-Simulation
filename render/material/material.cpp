@@ -1,6 +1,6 @@
 ﻿/*****************************************************************//**
  * \file   material.cpp
- * \brief  
+ * \brief  材质
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/

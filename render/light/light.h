@@ -8,7 +8,7 @@
  *********************************************************************/
 #ifndef LIGHT_H
 #define LIGHT_H
-#include "../core.h"
+#include "../../util/common/glm.h"
 
 class Light {
 public:

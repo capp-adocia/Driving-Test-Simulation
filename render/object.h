@@ -8,7 +8,7 @@
  *********************************************************************/
 #ifndef OBJECT_H
 #define OBJECT_H
-#include "core.h"
+#include "../../util/common/opengl.h"
 
 enum class ObjectType {
     Object,

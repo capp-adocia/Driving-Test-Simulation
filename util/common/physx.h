@@ -13,4 +13,6 @@
 #include <physx/vehicle2/PxVehicleAPI.h>
 #include <physx/PxScene.h>
 
+using PxScenePtr = physx::PxScene*;
+
 #endif // PHYSX_H

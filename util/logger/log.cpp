@@ -28,6 +28,15 @@ void Logger::init(LogLevel level, uint8_t appenderTypes, const char* folder) {
     printColor(LOG_LEVEL_INFO, "Logger initialized!");
 }
 
+void Logger::setLogLevel(LogLevel level) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (level >= LOG_LEVEL_DEBUG && level <= LOG_LEVEL_ERROR) {
+        m_currentLevel = level;
+        return;
+    }
+    printColor(LOG_LEVEL_WARN, "Invalid log level!");
+}
+
 void Logger::outputLog(LogLevel level, const std::string& message) {
     std::lock_guard<std::mutex> lock(m_mutex); // 确保线程安全
     for (auto& appender : m_appenders) {

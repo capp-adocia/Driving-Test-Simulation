@@ -18,7 +18,7 @@
 
 /* 断言宏 配合log使用 */
 #define ASSERT(x) do{\
-        CERR << " Assertion " << x << "failed" << std::endl; \
+        CERR << " Assertion "<< #x << " failed at " << __FILE__ << ":" << __LINE__ << std::endl; \
         std::abort(); \
     } while(0);
 
@@ -52,6 +52,26 @@ namespace Util {
         }
         return "";
     }
-}
 
+    template<typename T>
+    T* ptr(const T& ref)
+    {
+        return reinterpret_cast<T*>(&ref);
+    }
+    template<typename T, typename V>
+    T& cast(V& ptr)
+    {
+        return *reinterpret_cast<T*>(&ptr);
+    }
+    template<typename T, typename V>
+    const T& cast(const V& ptr)
+    {
+        return *reinterpret_cast<T*>((void*)&ptr);
+    }
+
+
+
+
+
+}
 #endif // TOOLS_H

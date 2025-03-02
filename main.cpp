@@ -255,7 +255,6 @@ void initIMGUI() {
 
 void renderIMGUI()
 {
-	// 创建一个新的IMGUI帧
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
@@ -272,23 +271,31 @@ void renderIMGUI()
 		const PxVec3 linVel1 = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
 		// 计算速度的大小（即速度的模长）
 		float speedMagnitude = linVel1.magnitude();
-		float speedKmh = speedMagnitude * 3.6f; // 转成km/h
-		ImGui::Text("Speed: %.2f km/h", speedKmh); // 显示速度的大小
+		float speedKmh = speedMagnitude * 3.6f;
+		ImGui::Text("Speed: %.2f km/h", speedKmh);
 	}
 	// 挡位
 	{
-		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear); // 显示当前挡位
+		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear);
 	}
 
 	ImGui::End();
-	// 执行UI渲染
 	ImGui::Render();
-	// 获取当前窗口的宽高
 	int display_w = 0, display_h = 0;
 	SDL_GL_GetDrawableSize(glApp.getWindow(), &display_w, &display_h);
 	glViewport(0, 0, display_w, display_h);
-	// 渲染ImGui的绘制数据
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+const float fixedTimeStep = 1.0f / 60.0f; // 固定 60Hz 物理更新
+static float accumulatedTime = 0.0f;      // 记录累计时间
+
+void updatePhysics(float deltaTime) {
+	accumulatedTime += deltaTime;
+	while (accumulatedTime >= fixedTimeStep) {
+		stepPhysics(fixedTimeStep);
+		accumulatedTime -= fixedTimeStep;
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -324,7 +331,11 @@ int main(int argc, char* argv[]) {
 	preparePhysics(); // 准备渲染图形
 
 	while (glApp.update()) {
-		stepPhysics();
+
+		if(ImGui::GetIO().Framerate > 0)
+			updatePhysics(1.0f / ImGui::GetIO().Framerate);
+		else stepPhysics(fixedTimeStep);
+
 		const int MAX_NUM_ACTOR_SHAPES = 128;
 
 		PxU32 nbActors = gScene->getNbActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC);
@@ -334,12 +345,11 @@ int main(int argc, char* argv[]) {
 		PxShape* shapes[MAX_NUM_ACTOR_SHAPES] = { 0 };
 
 		// 定义跳过的物体类型，例如地面可以作为静态物体跳过
-		const PxActor* skipActor = actors[0];  // 假设第一个物体是地面，需跳过
+		const PxActor* skipActor = actors[0];
 		PxU32 sceneChildIndex = 2;  // 从场景的第三个对象开始设置模型矩阵，假设前两个是地面和背景等
 
 		for (PxU32 i = 0; i < static_cast<PxU32>(actors.size()); i++)
 		{
-			// 跳过不需要的物体
 			if (actors[i] == skipActor)
 			{
 				continue;  // 跳过地面或其他不需要的物体
@@ -350,9 +360,7 @@ int main(int argc, char* argv[]) {
 			//printf("Actor %d has %d shapes\n", i, nbShapes);
 			for (PxU32 j = 0; j < nbShapes; j++)  // 遍历每个形状
 			{
-				// 获取形状的变换矩阵
 				const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
-				// 获取形状的几何信息
 				const PxGeometry& shapeGeometry = shapes[j]->getGeometry();
 
 				// 判断物体类型，根据不同形状设置模型矩阵
@@ -360,7 +368,6 @@ int main(int argc, char* argv[]) {
 				{
 				case PxGeometryType::eBOX:
 				{
-					// 设置模型矩阵
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
 						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
@@ -370,11 +377,10 @@ int main(int argc, char* argv[]) {
 				}
 				case PxGeometryType::eCONVEXMESH:
 				{
-					// 设置模型矩阵
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
 						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
-						sceneChildIndex++;  // 增加下一个模型矩阵的索引
+						sceneChildIndex++;
 					}
 					break;
 				}
@@ -383,7 +389,7 @@ int main(int argc, char* argv[]) {
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
 						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
-						sceneChildIndex++;  // 增加下一个模型矩阵的索引
+						sceneChildIndex++;
 					}
 					break;
 				}

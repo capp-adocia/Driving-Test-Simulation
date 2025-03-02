@@ -1,6 +1,6 @@
 ﻿/*****************************************************************//**
  * \file   material.h
- * \brief  
+ * \brief  材质
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -8,7 +8,7 @@
  *********************************************************************/
 #ifndef MATERIAL_H
 #define MATERIAL_H
-#include "../core.h"
+#include "../../util/common/opengl.h"
 
 //使用C++的枚举类型
 enum class MaterialType {

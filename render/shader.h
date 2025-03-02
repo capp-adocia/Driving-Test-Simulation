@@ -9,7 +9,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "core.h"
+#include "../../util/common/opengl.h"
 #include<string>
 
 class Shader {

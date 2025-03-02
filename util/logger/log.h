@@ -21,24 +21,16 @@ public:
         return instance;
     }
 public:
-    // 禁止拷贝和移动
     Logger(const Logger&) = delete;
     Logger(Logger&&) = delete;
     Logger& operator=(const Logger&) = delete;
     Logger& operator=(Logger&&) = delete;
 public:
-    // 初始化日志系统，设置日志级别和 Appender
     void init(LogLevel level, uint8_t appenderTypes, const char* folder = "logs");
     // 设置日志级别
-    inline void setLogLevel(LogLevel level) {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (level >= LOG_LEVEL_DEBUG && level <= LOG_LEVEL_ERROR) {
-            m_currentLevel = level;
-            return;
-        }
-        printColor(LOG_LEVEL_WARN, "Invalid log level!");
-    }
+    void setLogLevel(LogLevel level);
     inline LogLevel getLogLevel() const { return m_currentLevel; }
+
     template <typename... Args>
     void log(LogLevel level, const std::string& format, const char* file, int line, Args&&... args) {
         if (!m_init) {
@@ -56,9 +48,9 @@ public:
 private:
     Logger();
 private:
-    LogLevel m_currentLevel;
+    LogLevel m_currentLevel = LOG_LEVEL_INFO;
     std::mutex m_mutex;
-    std::vector<std::shared_ptr<Appender>> m_appenders;
+    std::vector<std::shared_ptr<Appender>> m_appenders{};
     bool m_init = false;
 private:
     inline void addAppender(const std::shared_ptr<Appender> appender) { m_appenders.push_back(appender); }

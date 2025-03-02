@@ -94,7 +94,7 @@ void createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec
 	scene->addChild(sphere);
 }
 
-void stepPhysics();
+void stepPhysics(float dt);
 void initPhysX();
 void initGroundPlane();
 void initMaterialFrictionTable();
@@ -213,7 +213,7 @@ void handleSteering(int action, bool isLeft) {
 }
 
 // 模拟中更新
-void stepPhysics()
+void stepPhysics(float dt)
 {
 	const PxReal timestep = 1.0f / 60.0f;
 
@@ -225,9 +225,9 @@ void stepPhysics()
 
 	const PxU8 nbSubsteps1 = (forwardSpeed1 < 5.0f ? 3 : 1);
 	gVehicle.mComponentSequence.setSubsteps(gVehicle.mComponentSequenceSubstepGroupHandle, nbSubsteps1);
-	gVehicle.step(timestep, gVehicleSimulationContext);
+	gVehicle.step(dt, gVehicleSimulationContext);
 
-	gScene->simulate(timestep);
+	gScene->simulate(dt);
 	gScene->fetchResults(true);
 }
 
@@ -659,7 +659,7 @@ void LoadEngineDrivertrainParams(EngineDrivetrainParams& engineDrivetrainParams)
 	engineDrivetrainParams.engineParams.torqueCurve.addPair(1.0f, 1.0f);
 
 	engineDrivetrainParams.engineParams.moi = 1.0f;
-	engineDrivetrainParams.engineParams.peakTorque = 500.0f; // 最大扭矩
+	engineDrivetrainParams.engineParams.peakTorque = 1500.0f; // 最大扭矩
 	engineDrivetrainParams.engineParams.idleOmega = 0.0f;
 	engineDrivetrainParams.engineParams.maxOmega = 600.0f; // 最大转速
 	engineDrivetrainParams.engineParams.dampingRateFullThrottle = 0.15f;

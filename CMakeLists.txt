@@ -3,6 +3,7 @@ add_definitions(-DDEBUG)
 project(OpenGL_Lecture)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 复制 assets 文件夹（包括子目录和文件）
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})

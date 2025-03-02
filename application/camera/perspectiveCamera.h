@@ -10,7 +10,6 @@
 #define PERSPECTIVECAMERA_H
 
 #include "camera.h"
-#include "../../util/common/opengl.h"
 
 class PerspectiveCamera : public Camera {
 public:

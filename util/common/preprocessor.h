@@ -26,7 +26,7 @@
 #define AUTOGEAR    // 自动挡
 
 /* 单元测试 */
-//#define UNIT_T
+#define UNIT_T
 
 //========================================
 //         !平台相关配置
@@ -39,9 +39,15 @@
 #include <windows.h>    // Windows核心头文件
 #include <Psapi.h>      // 进程状态API
 #include <direct.h>
+#ifndef APIENTRY
+#define APIENTRY __stdcall
+#endif
+
+
 // 调试模式配置
 #ifdef DEBUG
 #define VLD_CHECK  // 启用内存泄漏检测
+
 #else
 
 #endif // DEBUG

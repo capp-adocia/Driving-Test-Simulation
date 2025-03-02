@@ -11,14 +11,14 @@
 
 /* glad */
 #include <glad/glad.h>
+/* GLM */
+#include "glm.h"
 /* STL */
 #include "standard.h"
 /* Assimp */
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-/* GLM */
-#include "glm.h"
 /* SDL */
 #include "sdl2.h"
 /* Dear ImGui */
