@@ -1,12 +1,13 @@
 /*****************************************************************//**
  * \file   PhysicsSystem.cpp
- * \brief  ����ģ��
+ * \brief  物理模拟
  *
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
  * \date   March 2025
  *********************************************************************/
 #include "PhysicsSystem.h"
+//#include "../../physics/physx_tool.h"
 
 using namespace component;
 
@@ -21,11 +22,14 @@ void PhysicsSystem::Init()
 
 void PhysicsSystem::OnTick(float dt, entt::registry& registry)
 {
-	auto& view = registry.view<TagComponent, TransformComponent>();
-    for (auto entity : view) {
+	auto& view = registry.view<TagComponent>();
+    for (entt::entity entity : view) {
         auto& tag = view.get<TagComponent>(entity);
-        auto& transform = view.get<TransformComponent>(entity);
-        printf("%s\n", tag.Name.c_str());
+
+        if (!registry.all_of<PhysicsComponent>(entity)) // all_of可以用来检查是否有这个组件
+        {
+            LOG_DEBUG("OK!");
+        }
     }
 }
 

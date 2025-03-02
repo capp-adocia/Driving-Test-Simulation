@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   Base.h
  * \brief  
  * 
@@ -9,11 +9,7 @@
 #ifndef BASE_H
 #define BASE_H
 
-#include <physx/vehicle2/PxVehicleAPI.h>
-
-
-using namespace physx;
-using namespace physx::vehicle2;
+#include "../util/common/physx.h"
 
 struct BaseVehicleParams
 {

@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   world.cpp
- * \brief  ´¦Àí¡¢¸üÐÂÊÀ½çÐÅÏ¢
+ * \brief  å¤„ç†ã€æ›´æ–°ä¸–ç•Œä¿¡æ¯
  *
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -59,12 +59,11 @@ void World::OnTick(float dt)
 		return;
 	if(!m_Physics || !m_Render)
 		LOG_ERROR("Physics or Render is not initialized");
-
-	/* Todo:ÎïÀíÏµÍ³ */
-	m_Physics->OnTick(1 / 60.0f, m_EntityRegistry);
-	/* Todo:äÖÈ¾ÏµÍ³ */
+	/* Todo:ç‰©ç†ç³»ç»Ÿ */
+	m_Physics->OnTick(1.0f / 60.0f, m_EntityRegistry);
+	/* Todo:æ¸²æŸ“ç³»ç»Ÿ */
 	m_Render->OnTick(dt, m_EntityRegistry);
-	/* Todo:ÊÂ¼þÏµÍ³ */
+	/* Todo:äº‹ä»¶ç³»ç»Ÿ */
 	{
 		//m_EntityDayLight.GetTransform().Transform = glm::rotate(glm::mat4(1.0f), Math::Mod(wi.DayTime * 2.0f, 1.0f) * Math::PI * 2.0f, glm::vec3(0, 0, 1));
 		//auto& light = m_EntityDayLight.GetComponent<LightComponent>();

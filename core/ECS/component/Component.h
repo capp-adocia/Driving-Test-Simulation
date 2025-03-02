@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   Component.h
  * \brief  组件，用于存储实体对象的数据
  * 
@@ -9,6 +9,7 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 #include "../../../util/common/tools.h"
+#include "../../../util/common/physx.h"
 
 namespace component {
 	struct TagComponent

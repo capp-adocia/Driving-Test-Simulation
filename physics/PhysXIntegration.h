@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   PhysXIntegration.h
  * \brief  
  * 
@@ -9,12 +9,7 @@
 #ifndef PHYSXINTEGRATION_H
 #define PHYSXINTEGRATION_H
 
-#include <physx/PxScene.h>
-#include <physx/vehicle2/PxVehicleAPI.h>
 #include "Base.h"
-
-using namespace physx;
-using namespace physx::vehicle2;
 
 struct PhysXIntegrationParams
 {

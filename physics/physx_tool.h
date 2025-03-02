@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   physx_tool.h
  * \brief  
  * 
@@ -9,13 +9,9 @@
 #ifndef PHYSX_TOOL_H
 #define PHYSX_TOOL_H
 
-#include <physx/PxPhysicsAPI.h>
 #include "EngineDrivetrain.h"
 #include "../../resource/model/assimpLoader.h"
 #include "../../util/common/preprocessor.h"
-
-using namespace physx;
-using namespace physx::vehicle2;
 
 /* Scene */
 std::shared_ptr<Scene> scene = nullptr;
@@ -36,17 +32,16 @@ PxScene* gScene = NULL;
 PxMaterial* gMaterial = NULL;
 PxPvd* gPvd = NULL;
 
-std::shared_ptr<Object> model = nullptr;
+//std::shared_ptr<Object> model = nullptr;
 
-struct physx_actor_entity
-{
-	PxRigidActor* actorPtr;
-	PxU32 actorId;
-};
-
-std::vector<physx_actor_entity> physx_actors;
-
-static PxU32 stackCounter = 0;
+//struct physx_actor_entity
+//{
+//	PxRigidActor* actorPtr;
+//	PxU32 actorId;
+//};
+//
+//std::vector<physx_actor_entity> physx_actors;
+//static PxU32 stackCounter = 0;
 
 void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
@@ -62,7 +57,7 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 			PxRigidBodyExt::updateMassAndInertia(*body, 20.0f);
 			gScene->addActor(*body);
 
-			physx_actors.push_back({ body, stackCounter++ });
+			//physx_actors.push_back({ body, stackCounter++ });
 		}
 	}
 	shape->release();
@@ -79,13 +74,13 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 
 void createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
 {
-	static PxU32 dynamicCounter = 0;
+	//static PxU32 dynamicCounter = 0;
 
 	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
 	dynamic->setAngularDamping(0.5f);
 	dynamic->setLinearVelocity(velocity);
 	gScene->addActor(*dynamic);
-	physx_actors.push_back({ dynamic, dynamicCounter++ });
+	//physx_actors.push_back({ dynamic, dynamicCounter++ });
 
 	auto Geometry = Geometry::createSphere(0.5f);
 	auto Material = std::make_shared<PhongMaterial>();

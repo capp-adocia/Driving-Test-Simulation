@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   UnitTest.h
- * \brief  单元测试
+ * \brief  鍗曞厓娴嬭瘯
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -30,12 +30,12 @@ namespace UnitTest {
     //    std::cout << "High priority listener: " << e.value << std::endl;
     //}
     //void func() {
-    //    // 如果是testevent那么就会调用listenerLow
+    //    // 濡傛灉鏄痶estevent閭ｄ箞灏变細璋冪敤listenerLow
     //    EB_INS.Subscribe<TestEvent>(listenerLow, EventPriority::NORMAL);
     //    EB_INS.Subscribe<TestEvent>(listenerNormal, EventPriority::LOW);
     //    EB_INS.Subscribe<TestEvent>(listenerHigh, EventPriority::HIGH);
 
-    //    // 发布事件
+    //    // 鍙戝竷浜嬩欢
     //    TestEvent event{ 42 };
     //    EB_INS.Publish(event);
     //}
@@ -44,17 +44,17 @@ namespace UnitTest {
     using component::TagComponent;
     using component::TransformComponent;
 
-    void func()
+    void main_component()
     {
         Entity entity = world.CreateEntity("111");
         Entity entity2 = world.CreateEntity("222");
 
-        world.LoadWorld();
-        world.OnTick(1 / 60.0f);
+        
 
-        /* 结束后 */
-        world.DestroyEntity(entity);
-        world.DestroyEntity(entity2);
+
+
+        world.LoadWorld();
+        world.OnTick(1.0f / 60.0f);
     }
 
 
@@ -65,7 +65,7 @@ namespace UnitTest {
 namespace UnitTest {
     void RunAllTests()
     {
-        func();
+        main_component();
     }
 } // namespace UnitTest
 #define UNIT_TEST UnitTest::RunAllTests();

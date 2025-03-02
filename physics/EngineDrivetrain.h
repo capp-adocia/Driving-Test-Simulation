@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   EngineDrivetrain.h
  * \brief  
  * 
@@ -9,11 +9,7 @@
 #ifndef ENGINE_DRIVETRAIN_H
 #define ENGINE_DRIVETRAIN_H
 
-#include <physx/vehicle2/PxVehicleAPI.h>
 #include "PhysXIntegration.h"
-
-using namespace physx;
-using namespace physx::vehicle2;
 
 struct EngineDrivetrainParams
 {
