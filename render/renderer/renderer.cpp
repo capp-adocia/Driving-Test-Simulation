@@ -34,9 +34,12 @@ Renderer::Renderer()
 	, mPhongEnvShader(std::make_shared<Shader>("assets/shaders/phongEnv.vert", "assets/shaders/phongEnv.frag"))
 	, mPhongInstShader(std::make_shared<Shader>("assets/shaders/phongInstance.vert", "assets/shaders/phongInstance.frag"))
 	, mGrassInstShader(std::make_shared<Shader>("assets/shaders/grassInstance.vert", "assets/shaders/grassInstance.frag"))
+	, mLineShader(std::make_shared<Shader>("assets/shaders/line.vert", "assets/shaders/line.frag"))
 	, mOpacityObjects({})
 	, mTransparentObjects({})
-{}
+{
+	InitAABBRenderer();
+}
 
 Renderer::~Renderer() {
 
@@ -54,17 +57,162 @@ void Renderer::msaaResolve(std::shared_ptr<FrameBuffer> src, std::shared_ptr<Fra
 	glBlitFramebuffer(0, 0, src->getWidth(), src->getHeight(), 0, 0, dst->getWidth(), dst->getHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
+static GLuint vaoSphere, vboSphere;
+void Renderer::InitAABBRenderer() {
+	glGenVertexArrays(1, &vaoSphere);
+	glGenBuffers(1, &vboSphere);
+	glBindVertexArray(vaoSphere);
+	glBindBuffer(GL_ARRAY_BUFFER, vboSphere);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+void Renderer::DrawAABB(const std::array<glm::vec3, 8>& worldCorners, const glm::mat4& viewProj) {
+	//// 定义AABB的12条边（连接8个角点的索引）
+	//const std::array<std::pair<int, int>, 12> edges = { {
+	//	{0,1}, {1,2}, {2,3}, {3,0}, // 底面
+	//	{4,5}, {5,6}, {6,7}, {7,4}, // 顶面
+	//	{0,4}, {1,5}, {2,6}, {3,7} // 侧面连接
+	//} };
+
+	//// 准备顶点缓冲
+	//std::vector<glm::vec3> vertices;
+	//for (const auto& edge : edges) {
+	//	vertices.push_back(worldCorners[edge.first]);
+	//	vertices.push_back(worldCorners[edge.second]);
+	//}
+
+	//// 使用OpenGL绘制线段
+	//mLineShader->begin();
+
+	//// 设置视图投影矩阵
+	//GLint viewProjLoc = glGetUniformLocation(mLineShader->getProgram(), "viewProj");
+	//glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+
+	//// 设置线框颜色
+	//GLint lineColorLoc = glGetUniformLocation(mLineShader->getProgram(), "lineColor");
+	//glUniform3f(lineColorLoc, 1.0f, 0.0f, 0.0f); // 红色
+
+	//// 绑定VAO并上传顶点数据
+	//glBindVertexArray(vao);
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+
+	//// 绘制线段
+	//glDrawArrays(GL_LINES, 0, (int)(vertices.size()));
+
+	//// 解绑
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
+
+	//glUseProgram(0);
+}
+
+std::vector<glm::vec3> GenerateSphereWireframe(
+	const glm::vec3& center,
+	float radius,
+	int longitudeSegments = 32,  // 经线分段数
+	int latitudeSegments = 16    // 纬线分段数
+) {
+	std::vector<glm::vec3> vertices;
+
+	// 生成经线（纵向圆圈）
+	for (int i = 0; i <= longitudeSegments; ++i) {
+		float theta = glm::two_pi<float>() * i / longitudeSegments;
+		for (int j = 0; j < latitudeSegments; ++j) {
+			float phi = glm::pi<float>() * j / latitudeSegments;
+			glm::vec3 pos = center + radius * glm::vec3(
+				sin(phi) * cos(theta),
+				cos(phi),
+				sin(phi) * sin(theta)
+			);
+			vertices.push_back(pos);
+			phi = glm::pi<float>() * (j + 1) / latitudeSegments;
+			pos = center + radius * glm::vec3(
+				sin(phi) * cos(theta),
+				cos(phi),
+				sin(phi) * sin(theta)
+			);
+			vertices.push_back(pos);
+		}
+	}
+
+	// 生成纬线（横向圆圈）
+	for (int j = 0; j < latitudeSegments; ++j) {
+		float phi = glm::pi<float>() * j / latitudeSegments;
+		float sinPhi = sin(phi);
+		float cosPhi = cos(phi);
+		for (int i = 0; i <= longitudeSegments; ++i) {
+			float theta = glm::two_pi<float>() * i / longitudeSegments;
+			glm::vec3 pos = center + radius * glm::vec3(
+				sinPhi * cos(theta),
+				cosPhi,
+				sinPhi * sin(theta)
+			);
+			vertices.push_back(pos);
+			theta = glm::two_pi<float>() * (i + 1) / longitudeSegments;
+			pos = center + radius * glm::vec3(
+				sinPhi * cos(theta),
+				cosPhi,
+				sinPhi * sin(theta)
+			);
+			vertices.push_back(pos);
+		}
+	}
+
+	return vertices;
+}
+
+// Ax + By + Cz + D = 0
+// A, B, C是法向量，D是距离原点的距离
+struct Plane {
+	glm::vec3 normal;
+	float distance;
+};
+bool SphereInFrustum(const glm::vec3& center, float radius, const Plane planes[6]) {
+	for (int i = 0; i < 6; i++) {
+		// normal先归一化再点乘中心点+距离
+		float distance = glm::dot(planes[i].normal, center) + planes[i].distance;
+		if (distance < -radius) return false; // 完全在平面外
+	}
+	return true; // 相交或内部
+}
+
+Plane NormalizePlane(const glm::vec4& p) {
+	float len = glm::length(glm::vec3(p)); // Compute length of the normal vector (ignoring w)
+	return { glm::vec3(p) / len, p.w / len }; // Normalize and divide by the w component for distance
+}
+
+void ExtractPlanes(Plane planes[6], const glm::mat4& m) {
+	// Accessing rows of the matrix manually by using the glm::mat4 indexing
+	glm::mat4 transposed = glm::transpose(m);
+	const glm::vec4 row0 = transposed[0];
+	const glm::vec4 row1 = transposed[1];
+	const glm::vec4 row2 = transposed[2];
+	const glm::vec4 row3 = transposed[3];
+
+	// Extract planes and normalize them
+	planes[0] = NormalizePlane(row3 + row0); // Left
+	planes[1] = NormalizePlane(row3 - row0); // Right
+	planes[2] = NormalizePlane(row3 + row1); // Bottom
+	planes[3] = NormalizePlane(row3 - row1); // Top
+	planes[4] = NormalizePlane(row3 + row2); // Near
+	planes[5] = NormalizePlane(row3 - row2); // Far
+}
+
 void Renderer::render(
 	std::shared_ptr<Scene> scene,
 	std::shared_ptr<Camera> camera,
 	std::shared_ptr<DirectionalLight> dirLight,
 	std::shared_ptr<AmbientLight> ambLight,
-	unsigned int fbo
+	unsigned int fbo, glm::vec3 center, float radius
 )
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	//1 设置当前帧绘制的时候，opengl的必要状态机参数
+	// 设置当前帧绘制的时候，opengl的必要状态机参数
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
@@ -79,11 +227,12 @@ void Renderer::render(
 	// 关闭混合
 	glDisable(GL_BLEND);
 
-	//2 清理画布 
+	// 清理画布 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	mOpacityObjects.clear();
 	mTransparentObjects.clear();
+	
 	// 将不透明和透明物体分开，装到不同容器中
 	projectObject(scene);
 
@@ -102,14 +251,13 @@ void Renderer::render(
 			return cameraPositionA.z < cameraPositionB.z; // z值越小，越在前面
 		});
 
-	//3 将scene当作根节点开始递归渲染
-	//renderObject(scene, camera, dirLight, ambLight);
 
 	// 渲染两个队列
 	for (auto obj : mOpacityObjects)
 	{
 		renderObject(obj, camera, dirLight, ambLight);
 	}
+
 	for (auto obj : mTransparentObjects)
 	{
 		renderObject(obj, camera, dirLight, ambLight);
@@ -252,6 +400,8 @@ void Renderer::renderObject(
 	std::shared_ptr<AmbientLight> ambLight
 )
 {
+	glm::vec3 worldCenter = glm::vec3(0.0f);
+	float worldRadius = 0.0f;
 	//1 判断是Mesh还是Object，如果是Mesh需要渲染，是InstanceMesh也要判断
 	if (object->getType() == ObjectType::Mesh || object->getType() == ObjectType::InstanceMesh) {
 		auto mesh = std::dynamic_pointer_cast<Mesh>(object);
@@ -276,10 +426,20 @@ void Renderer::renderObject(
 
 		//2 更新shader的uniform
 		shader->begin();
-
 		switch (material->getType()) {
 		case MaterialType::PhongMaterial: {
 			std::shared_ptr<PhongMaterial> phongMat = std::dynamic_pointer_cast<PhongMaterial>(material);
+
+			/* 视锥体裁剪 */
+			glm::mat4 modelMatrix = mesh->getModelMatrix();
+			worldCenter = glm::vec3(modelMatrix * glm::vec4(geometry->boundingSphereCenter, 1.0f));
+			worldRadius = geometry->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]), glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
+
+			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
+			Plane planes[6];
+			ExtractPlanes(planes, viewProj);
+			if (!SphereInFrustum(worldCenter, worldRadius, planes))
+				return;
 
 			//diffuse贴图帧更新
 			//将纹理采样器与纹理单元进行挂钩
@@ -501,12 +661,38 @@ void Renderer::renderObject(
 			std::shared_ptr<InstanceMesh> instanceMesh = std::dynamic_pointer_cast<InstanceMesh>(mesh);
 			glDrawElementsInstanced(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0, instanceMesh->getInstanceCount());
 		}
+		else if (object->getType() == ObjectType::Line)
+		{
+
+		}
 		else
 		{
 			// 单个绘制
 			glDrawElements(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0);
 		}
 		glBindVertexArray(0);
+
+
+		{
+			// 渲染 AABB 线框
+			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
+			{
+				// 生成球体线框顶点
+				std::vector<glm::vec3> vertices = GenerateSphereWireframe(worldCenter, worldRadius, 8, 16);
+				mLineShader->begin();
+				GLint viewProjLoc = glGetUniformLocation(mLineShader->getProgram(), "viewProj");
+				glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+				GLint lineColorLoc = glGetUniformLocation(mLineShader->getProgram(), "lineColor");
+				glUniform3f(lineColorLoc, 0.0f, 1.0f, 0.0f);
+				glBindVertexArray(vaoSphere);
+				glBindBuffer(GL_ARRAY_BUFFER, vboSphere);
+				glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+				glDrawArrays(GL_LINES, 0, (int)vertices.size());
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				glBindVertexArray(0);
+				glUseProgram(0);
+			}
+		}
 	}
 
 }

@@ -253,6 +253,71 @@ void initIMGUI() {
 	ImGui_ImplSDL2_InitForOpenGL(glApp.getWindow(), glApp.getContext());
 }
 
+const float fixedTimeStep = 1.0f / 60.0f; // 固定 60Hz 物理更新
+static float accumulatedTime = 0.0f;      // 记录累计时间
+
+void updatePhysics(float deltaTime) {
+	accumulatedTime += deltaTime;
+	while (accumulatedTime >= fixedTimeStep) {
+		stepPhysics(fixedTimeStep);
+		accumulatedTime -= fixedTimeStep;
+	}
+}
+
+
+// 绘制AABB函数
+void DrawAABB(const glm::vec3& worldMin, const glm::vec3& worldMax) {
+	ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+
+	// 生成世界空间的8个角点
+	std::array<glm::vec3, 8> corners = {
+		glm::vec3(worldMin.x, worldMin.y, worldMin.z), // 000
+		glm::vec3(worldMax.x, worldMin.y, worldMin.z), // X
+		glm::vec3(worldMax.x, worldMax.y, worldMin.z), // X Y
+		glm::vec3(worldMin.x, worldMax.y, worldMin.z), // Y
+		glm::vec3(worldMin.x, worldMin.y, worldMax.z), // Z
+		glm::vec3(worldMax.x, worldMin.y, worldMax.z), // X Z
+		glm::vec3(worldMax.x, worldMax.y, worldMax.z), // X Y Z
+		glm::vec3(worldMin.x, worldMax.y, worldMax.z)  // Y Z
+	};
+
+	// 相机的视图投影矩阵和视口信息
+	glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
+	glm::ivec4 viewport = glm::ivec4(0, 0, glApp.getWidth(), glApp.getHeight()); // 视口参数
+
+	// 将3D点转换为屏幕坐标
+	std::array<ImVec2, 8> screenPoints;
+	for (int i = 0; i < 8; ++i) {
+		// 应用视图投影矩阵
+		glm::vec4 clipPos = viewProj * glm::vec4(corners[i], 1.0f);
+		// 透视除法
+		glm::vec3 ndcPos = glm::vec3(clipPos) / clipPos.w;
+		// 转换为屏幕坐标
+		screenPoints[i] = ImVec2(
+			(ndcPos.x + 1.0f) * 0.5f * viewport.z + viewport.x,
+			(1.0f - ndcPos.y) * 0.5f * viewport.w + viewport.y
+		);
+	}
+
+	// 定义AABB的12条边（连接8个角点的索引）
+	const std::array<std::pair<int, int>, 12> edges = { {
+		{0,1}, {1,2}, {2,3}, {3,0}, // 底面
+		{4,5}, {5,6}, {6,7}, {7,4}, // 顶面
+		{0,4}, {1,5}, {2,6}, {3,7} // 侧面连接
+	} };
+
+	// 使用ImGui绘制线段
+	ImU32 color = IM_COL32(255, 0, 0, 255); // 红色
+	for (const auto& edge : edges) {
+		draw_list->AddLine(
+			screenPoints[edge.first],
+			screenPoints[edge.second],
+			color,
+			1.0f // 线宽
+		);
+	}
+}
+static bool showAABB = true;
 void renderIMGUI()
 {
 	ImGui_ImplOpenGL3_NewFrame();
@@ -278,6 +343,11 @@ void renderIMGUI()
 	{
 		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear);
 	}
+	// AABB包围球
+	{
+		if(ImGui::Button("AABB"))
+			showAABB = !showAABB;
+	}
 
 	ImGui::End();
 	ImGui::Render();
@@ -287,16 +357,37 @@ void renderIMGUI()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-const float fixedTimeStep = 1.0f / 60.0f; // 固定 60Hz 物理更新
-static float accumulatedTime = 0.0f;      // 记录累计时间
-
-void updatePhysics(float deltaTime) {
-	accumulatedTime += deltaTime;
-	while (accumulatedTime >= fixedTimeStep) {
-		stepPhysics(fixedTimeStep);
-		accumulatedTime -= fixedTimeStep;
-	}
-}
+//void computeAABBsphere(glm::vec3& center, float& radius)
+//{
+//	auto& geo = std::dynamic_pointer_cast<Mesh>(scene->getChildren()[2])->getGeometry();
+//	// 生成8个点
+//	// 局部坐标系的 AABB 角点
+//	std::array<glm::vec3, 8> localCorners = {
+//		glm::vec3(geo->localMin.x, geo->localMin.y, geo->localMin.z), // 000
+//		glm::vec3(geo->localMax.x, geo->localMin.y, geo->localMin.z), // X
+//		glm::vec3(geo->localMax.x, geo->localMax.y, geo->localMin.z), // X Y
+//		glm::vec3(geo->localMin.x, geo->localMax.y, geo->localMin.z), // Y
+//		glm::vec3(geo->localMin.x, geo->localMin.y, geo->localMax.z), // Z
+//		glm::vec3(geo->localMax.x, geo->localMin.y, geo->localMax.z), // X Z
+//		glm::vec3(geo->localMax.x, geo->localMax.y, geo->localMax.z), // X Y Z
+//		glm::vec3(geo->localMin.x, geo->localMax.y, geo->localMax.z)  // Y Z
+//	};
+//	glm::mat4 modelMatrix = scene->getChildren()[2]->getModelMatrix(); // 获取物体的模型矩阵
+//	std::array<glm::vec3, 8> worldCorners;
+//	for (int i = 0; i < 8; ++i) {
+//		glm::vec4 worldPos = modelMatrix * glm::vec4(localCorners[i], 1.0f);
+//		worldCorners[i] = glm::vec3(worldPos);
+//	}
+//	glm::vec3 worldMin(std::numeric_limits<float>::max());
+//	glm::vec3 worldMax(std::numeric_limits<float>::lowest());
+//	for (const auto& corner : worldCorners) {
+//		worldMin = glm::min(worldMin, corner);
+//		worldMax = glm::max(worldMax, corner);
+//	}
+//	// 从AABB推导包围球
+//	center = (worldMin + worldMax) * 0.5f;
+//	radius = glm::length(worldMax - worldMin) * 0.5f;
+//}
 
 int main(int argc, char* argv[]) {
 #ifdef DEBUG
@@ -357,6 +448,7 @@ int main(int argc, char* argv[]) {
 			const PxU32 nbShapes = actors[i]->getNbShapes();
 			PX_ASSERT(nbShapes <= MAX_NUM_ACTOR_SHAPES);
 			actors[i]->getShapes(shapes, nbShapes);
+			
 			//printf("Actor %d has %d shapes\n", i, nbShapes);
 			for (PxU32 j = 0; j < nbShapes; j++)  // 遍历每个形状
 			{
@@ -416,13 +508,30 @@ int main(int argc, char* argv[]) {
 			temp->setCameraPosTarget(cameraPos, cameraTarget); // 设置相机位置和目标点
 		}
 		cameraControl->update(); // 更新相机控制
+		/*//////////////////////////////////////////////////////////////////////////////*/
+		//glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
+		//float radius = 0.0f;
+		//computeAABBsphere(center, radius);
+		auto& geo = std::dynamic_pointer_cast<Mesh>(scene->getChildren()[3])->getGeometry();
+		glm::mat4 modelMatrix = scene->getChildren()[3]->getModelMatrix();
+		glm::vec3 worldCenter = glm::vec3(modelMatrix * glm::vec4(geo->boundingSphereCenter, 1.0f));
+		float worldRadius = geo->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]),glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
+		/*//////////////////////////////////////////////////////////////////////////////*/
+		renderer->setClearColor(clearColor);
 
-		renderer->setClearColor(clearColor); // 设置渲染器的清除颜色
-		renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
-		renderer->msaaResolve(framebuffer, fboResolve);
-		renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
+		if (showAABB)
+		{
+			renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO(), worldCenter, worldRadius); // 渲染到离屏缓冲区
+			renderer->msaaResolve(framebuffer, fboResolve);
+			renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
+		}
+		else
+		{
+			renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
+			renderer->msaaResolve(framebuffer, fboResolve);
+			renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
+		}
 		renderIMGUI(); // 渲染IMGUI界面
-
 	}
 	// PhysX
 	releasePhysics();

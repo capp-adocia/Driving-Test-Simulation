@@ -20,5 +20,6 @@ namespace MTools
 	// 传入一个矩阵，结构其中的位置、旋转信息XYZ、缩放信息
 	void Decompose(glm::mat4 matrix, glm::vec3& position, glm::vec3& eulerAngle, glm::vec3& scale);
 
+
 }
 #endif // MATH_H

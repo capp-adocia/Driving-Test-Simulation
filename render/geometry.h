@@ -38,6 +38,11 @@ public:
 
 	GLuint getVao() const { return mVao; }
 	uint32_t getIndicesCount() const { return mIndicesCount; }
+public:
+	glm::vec3 localMin{ 0.0f };
+	glm::vec3 localMax{ 0.0f };
+	glm::vec3 boundingSphereCenter;  // 局部空间包围球中心
+	float boundingSphereRadius;      // 局部空间包围球半径
 
 private:
 	GLuint mVao;
@@ -48,5 +53,6 @@ private:
 	GLuint mColorVbo;
 
 	uint32_t mIndicesCount;
+
 };
 #endif // GEOMETRY_H

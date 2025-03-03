@@ -9,6 +9,7 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 #include "standard.h"
+#include "glm.h"
 
 /* 宏工具 */
 #define CONCAT(a, b) a##b
@@ -70,8 +71,12 @@ namespace Util {
     }
 
 
+    struct BoundingSphere {
+        glm::vec3 center;
+        float radius;
+    };
 
-
+    BoundingSphere CalculateBoundingSphere(const std::vector<glm::vec3>& vertices);
 
 }
 #endif // TOOLS_H

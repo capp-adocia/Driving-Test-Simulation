@@ -31,6 +31,7 @@ public:
         std::shared_ptr<DirectionalLight> dirLight,
         std::shared_ptr<AmbientLight> ambLight,
         unsigned int fbo = 0
+        , glm::vec3 center = glm::vec3(0.0f), float radius = 0.0f
     );
 
     void renderObject(
@@ -42,6 +43,9 @@ public:
 
     void setClearColor(glm::vec3 color);
     void msaaResolve(std::shared_ptr<FrameBuffer> src, std::shared_ptr<FrameBuffer> dst);
+
+    void InitAABBRenderer();
+    void DrawAABB(const std::array<glm::vec3, 8>& worldCorners, const glm::mat4& viewProj);
 public:
     std::shared_ptr<Material> mGlobalMaterial;
 
@@ -65,6 +69,7 @@ private:
     std::shared_ptr<Shader> mPhongEnvShader;
     std::shared_ptr<Shader> mPhongInstShader;
     std::shared_ptr<Shader> mGrassInstShader;
+    std::shared_ptr<Shader> mLineShader;
 
 private:
     std::vector<std::shared_ptr<Mesh>> mOpacityObjects; // 半透明不透明物体

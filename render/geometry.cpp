@@ -7,7 +7,7 @@
  * \date   February 2025
  *********************************************************************/
 #include "geometry.h"
-#include <vector>
+#include "../../util/common/tools.h"
 
 Geometry::Geometry()
 	: mVao(0)
@@ -303,6 +303,14 @@ std::shared_ptr<Geometry> Geometry::createBox(const float length, const float he
 		// Left face
 		-halfLength, -halfHeight, -halfWidth, -halfLength, -halfHeight, halfWidth, -halfLength, halfHeight, halfWidth, -halfLength, halfHeight, -halfWidth
 	};
+
+	// 计算包围球
+	geometry->boundingSphereCenter = glm::vec3(0.0f); // 盒子中心是局部坐标系原点
+	geometry->boundingSphereRadius = glm::sqrt(length * length + height * height + width * width) * 0.5f;
+
+	geometry->localMin = glm::vec3(-halfLength, -halfHeight, -halfWidth);
+	geometry->localMax = glm::vec3(halfLength, halfHeight, halfWidth);
+	
 
 	// Define the texture coordinates (assuming a standard cube mapping)
 	float uvs[] = {
@@ -619,6 +627,7 @@ std::shared_ptr<Geometry> Geometry::createScreenPlane()
 	return geometry;
 }
 
+
 // 创建圆柱体 半径和高
 std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 	std::shared_ptr<Geometry> geometry = std::make_shared<Geometry>();
@@ -703,8 +712,20 @@ std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 		indices.insert(indices.end(), { bottomCurrent, bottomNext, topNext });
 	}
 
-	// 设置索引数量
-	geometry->mIndicesCount = static_cast<uint32_t>(indices.size());
+	{
+		std::vector<glm::vec3> vertices;
+		for (size_t i = 0; i < positions.size(); i += 3) {
+			float x = positions[i];
+			float y = positions[i + 1];
+			float z = positions[i + 2];
+			vertices.emplace_back(x, y, z);
+		}
+		// 设置索引数量
+		geometry->mIndicesCount = static_cast<uint32_t>(indices.size());
+		Util::BoundingSphere sphere = Util::CalculateBoundingSphere(vertices);
+		geometry->boundingSphereCenter = sphere.center;
+		geometry->boundingSphereRadius = sphere.radius;
+	}
 
 	// 创建OpenGL对象
 	GLuint posVbo, uvVbo, normalVbo, ebo, vao;
