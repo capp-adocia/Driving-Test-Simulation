@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   geometry.cpp
  * \brief  
  * 
@@ -17,6 +17,8 @@ Geometry::Geometry()
 	, mEbo(0)
 	, mColorVbo(0)
 	, mIndicesCount(0)
+	, boundingSphereCenter(glm::vec3(0.0f))
+	, boundingSphereRadius(0.0f)
 {}
 
 Geometry::Geometry(
@@ -32,12 +34,14 @@ Geometry::Geometry(
 	, mEbo(0)
 	, mColorVbo(0)
 	, mIndicesCount(0)
+	, boundingSphereCenter(glm::vec3(0.0f))
+	, boundingSphereRadius(0.0f)
 {
 	mIndicesCount = static_cast<uint32_t>(indices.size());
-
+	
 	glGenBuffers(1, &mPosVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, mPosVbo);
-	glBufferData(GL_ARRAY_BUFFER, positions.size()*sizeof(float), positions.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_STATIC_DRAW);
 
 	glGenBuffers(1, &mUvVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, mUvVbo);
@@ -45,7 +49,7 @@ Geometry::Geometry(
 
 	glGenBuffers(1, &mNormalVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, mNormalVbo);
-	glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), normals.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), normals.data(), GL_STATIC_DRAW);
 
 	//3 EBO创建
 	glGenBuffers(1, &mEbo);
@@ -86,6 +90,8 @@ Geometry::Geometry(const std::vector<float>& positions
 	, mEbo(0)
 	, mColorVbo(0)
 	, mIndicesCount(0)
+	, boundingSphereCenter(glm::vec3(0.0f))
+	, boundingSphereRadius(0.0f)
 {
 	mIndicesCount = static_cast<uint32_t>(indices.size());
 
@@ -307,9 +313,6 @@ std::shared_ptr<Geometry> Geometry::createBox(const float length, const float he
 	// 计算包围球
 	geometry->boundingSphereCenter = glm::vec3(0.0f); // 盒子中心是局部坐标系原点
 	geometry->boundingSphereRadius = glm::sqrt(length * length + height * height + width * width) * 0.5f;
-
-	geometry->localMin = glm::vec3(-halfLength, -halfHeight, -halfWidth);
-	geometry->localMax = glm::vec3(halfLength, halfHeight, halfWidth);
 	
 
 	// Define the texture coordinates (assuming a standard cube mapping)
@@ -494,7 +497,6 @@ std::shared_ptr<Geometry> Geometry::createSphere(float radius) {
 	return geometry;
 }
 
-
 std::shared_ptr<Geometry> Geometry::createPlane(float width, float height) {
 	std::shared_ptr<Geometry> geometry = std::make_shared<Geometry>();
 	geometry->mIndicesCount = 6;
@@ -627,7 +629,6 @@ std::shared_ptr<Geometry> Geometry::createScreenPlane()
 	return geometry;
 }
 
-
 // 创建圆柱体 半径和高
 std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 	std::shared_ptr<Geometry> geometry = std::make_shared<Geometry>();
@@ -712,6 +713,8 @@ std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 		indices.insert(indices.end(), { bottomCurrent, bottomNext, topNext });
 	}
 
+	// 设置索引数量
+	geometry->mIndicesCount = static_cast<uint32_t>(indices.size());
 	{
 		std::vector<glm::vec3> vertices;
 		for (size_t i = 0; i < positions.size(); i += 3) {
@@ -720,8 +723,7 @@ std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 			float z = positions[i + 2];
 			vertices.emplace_back(x, y, z);
 		}
-		// 设置索引数量
-		geometry->mIndicesCount = static_cast<uint32_t>(indices.size());
+        // 计算包围球
 		Util::BoundingSphere sphere = Util::CalculateBoundingSphere(vertices);
 		geometry->boundingSphereCenter = sphere.center;
 		geometry->boundingSphereRadius = sphere.radius;

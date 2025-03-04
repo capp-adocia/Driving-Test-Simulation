@@ -32,7 +32,7 @@ PxScene* gScene = NULL;
 PxMaterial* gMaterial = NULL;
 PxPvd* gPvd = NULL;
 
-//std::shared_ptr<Object> model = nullptr;
+std::shared_ptr<Object> model = nullptr;
 
 //struct physx_actor_entity
 //{
@@ -344,16 +344,21 @@ void preparePhysics()
 	scene->addChild(plane);
 
 	// 一个车体
-	auto boxGeometry = Geometry::createBox(1.5905f, 1.140f, 2.8632f * 2 - 0.3432f); // 宽高长
-	auto boxMaterial = std::make_shared<PhongMaterial>();
-	boxMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/box.png", 0, GL_SRGB_ALPHA);
-	auto box = std::make_shared<Mesh>(boxGeometry, boxMaterial);
-	scene->addChild(box);
+	//auto boxGeometry = Geometry::createBox(1.5905f, 1.140f, 2.8632f * 2 - 0.3432f); // 宽高长
+	//auto boxMaterial = std::make_shared<PhongMaterial>();
+	//boxMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/box.png", 0, GL_SRGB_ALPHA);
+	//auto box = std::make_shared<Mesh>(boxGeometry, boxMaterial);
+	//scene->addChild(box);
+	model = AssimpLoader::load("assets/fbx/1.fbx");
+	LOG_DEBUG("模型顶点数量: {}", AssimpLoader::allVertices.size());
+	auto geo = AssimpLoader::loadMesh->getGeometry();
+	// 计算包围球
+	Util::BoundingSphere sphere = Util::CalculateBoundingSphere(AssimpLoader::allVertices);
+	geo->boundingSphereCenter = sphere.center;
+	geo->boundingSphereRadius = sphere.radius;
 
-	//model = AssimpLoader::load("assets/fbx/1.fbx");
-	//model->setScale(glm::vec3(0.01f));
-	//scene->addChild(model);
-	//model->setAngleY(90.f);
+	model->setScale(glm::vec3(0.01f));
+	scene->addChild(model);
 
 	// 四个车轮
 	for (int i = 0; i < 4; i++)

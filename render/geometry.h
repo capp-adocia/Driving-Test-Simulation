@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   geometry.h
  * \brief  
  * 
@@ -13,7 +13,8 @@
 
 class Geometry {
 public:
-	Geometry();
+	Geometry(); // 默认使用这个
+	// 模型加载
 	Geometry(
 		const std::vector<float>& positions,
 		const std::vector<float>& normals,
@@ -39,8 +40,6 @@ public:
 	GLuint getVao() const { return mVao; }
 	uint32_t getIndicesCount() const { return mIndicesCount; }
 public:
-	glm::vec3 localMin{ 0.0f };
-	glm::vec3 localMax{ 0.0f };
 	glm::vec3 boundingSphereCenter;  // 局部空间包围球中心
 	float boundingSphereRadius;      // 局部空间包围球半径
 

@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   object.cpp
  * \brief  
  * 
@@ -10,7 +10,7 @@
 #include "../util/logger/log.h"
 
 Object::Object()
-    : mModel(glm::mat4(1.0f))
+    : mPhysXMatrix(glm::mat4(1.0f))
     , mPosition(glm::vec3(0.0f))
     , mAngleX(0.0f)
     , mAngleY(0.0f)
@@ -56,7 +56,8 @@ void Object::setScale(glm::vec3 scale) {
     mScale = scale;
 }
 
-glm::mat4 Object::getModelMatrix() const {
+glm::mat4 Object::getModelMatrix() {
+
     //首先获取父亲的变换矩阵
     glm::mat4 parentMatrix{ 1.0f };
     if (auto parent = mParent.lock()) {
@@ -73,9 +74,9 @@ glm::mat4 Object::getModelMatrix() const {
     return transform;
 }
 
-glm::mat4 Object::getModelPhysXMatrix() const { return mModel; }
+glm::mat4 Object::getModelPhysXMatrix() const { return mPhysXMatrix; }
 
-void Object::setModelMatrix(const glm::mat4& model) { this->mModel = model; }
+void Object::setModelPhysXMatrix(const glm::mat4& model) { this->mPhysXMatrix = model; }
 
 // 检查是否曾经加入过这个孩子
 void Object::addChild(std::shared_ptr<Object> obj) {

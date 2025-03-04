@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   object.h
  * \brief  
  * 
@@ -38,7 +38,7 @@ public:
     void setScale(glm::vec3 scale);
 
     glm::vec3 getPosition() const { return mPosition; }
-    glm::mat4 getModelMatrix() const;
+    glm::mat4 getModelMatrix();
 
     // 父子关系
     void addChild(std::shared_ptr<Object> obj);  // 使用 shared_ptr
@@ -50,9 +50,10 @@ public:
     void setParent(std::shared_ptr<Object> parent);
 
     glm::mat4 getModelPhysXMatrix() const; // physx修改modelmatrix
-    void setModelMatrix(const glm::mat4& model);
+    void setModelPhysXMatrix(const glm::mat4& model);
+private:
+    glm::mat4 mPhysXMatrix;
 protected:
-    glm::mat4 mModel;
     glm::vec3 mPosition;
 
     // unity 旋转标准：pitch yaw roll

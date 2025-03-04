@@ -6,11 +6,9 @@
  * \site https://github.com/capp-adocia/
  * \date   February 2025
  *********************************************************************/
-
-
 #include "util/common/preprocessor.h"
 #ifdef VLD_CHECK
-#include <vld.h>
+//#include <vld.h>
 #endif // VLD_CHECK
 #include "render/core.h"
 #include "render/shader.h"
@@ -437,7 +435,7 @@ int main(int argc, char* argv[]) {
 
 		// 定义跳过的物体类型，例如地面可以作为静态物体跳过
 		const PxActor* skipActor = actors[0];
-		PxU32 sceneChildIndex = 2;  // 从场景的第三个对象开始设置模型矩阵，假设前两个是地面和背景等
+		PxU32 sceneChildIndex = 2;  // 从场景的第三个对象开始设置模型矩阵
 
 		for (PxU32 i = 0; i < static_cast<PxU32>(actors.size()); i++)
 		{
@@ -454,7 +452,7 @@ int main(int argc, char* argv[]) {
 			{
 				const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
 				const PxGeometry& shapeGeometry = shapes[j]->getGeometry();
-
+				
 				// 判断物体类型，根据不同形状设置模型矩阵
 				switch (shapeGeometry.getType())
 				{
@@ -462,7 +460,8 @@ int main(int argc, char* argv[]) {
 				{
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
-						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
+						// box的模型矩阵
+						scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
 						sceneChildIndex++;  // 增加下一个模型矩阵的索引
 					}
 					break;
@@ -471,7 +470,7 @@ int main(int argc, char* argv[]) {
 				{
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
-						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
+						scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
 						sceneChildIndex++;
 					}
 					break;
@@ -480,8 +479,8 @@ int main(int argc, char* argv[]) {
 				{
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
-						scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
-						sceneChildIndex++;
+						//scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
+						//sceneChildIndex++;
 					}
 					break;
 				}
@@ -512,16 +511,16 @@ int main(int argc, char* argv[]) {
 		//glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
 		//float radius = 0.0f;
 		//computeAABBsphere(center, radius);
-		auto& geo = std::dynamic_pointer_cast<Mesh>(scene->getChildren()[3])->getGeometry();
-		glm::mat4 modelMatrix = scene->getChildren()[3]->getModelMatrix();
-		glm::vec3 worldCenter = glm::vec3(modelMatrix * glm::vec4(geo->boundingSphereCenter, 1.0f));
-		float worldRadius = geo->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]),glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
+		//auto& geo = std::dynamic_pointer_cast<Mesh>(scene->getChildren()[3])->getGeometry();
+		//glm::mat4 modelMatrix = scene->getChildren()[3]->getModelMatrix();
+		//glm::vec3 worldCenter = glm::vec3(modelMatrix * glm::vec4(geo->boundingSphereCenter, 1.0f));
+		//float worldRadius = geo->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]),glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
 		/*//////////////////////////////////////////////////////////////////////////////*/
 		renderer->setClearColor(clearColor);
 
 		if (showAABB)
 		{
-			renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO(), worldCenter, worldRadius); // 渲染到离屏缓冲区
+			renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
 			renderer->msaaResolve(framebuffer, fboResolve);
 			renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
 		}

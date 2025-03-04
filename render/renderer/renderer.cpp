@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   renderer.cpp
  * \brief  
  * 
@@ -207,7 +207,7 @@ void Renderer::render(
 	std::shared_ptr<Camera> camera,
 	std::shared_ptr<DirectionalLight> dirLight,
 	std::shared_ptr<AmbientLight> ambLight,
-	unsigned int fbo, glm::vec3 center, float radius
+	unsigned int fbo
 )
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -421,26 +421,26 @@ void Renderer::renderObject(
 		// 面剔除
 		setFaceCullState(material);
 
-		//1 决定使用哪个Shader 
+		// 决定使用哪个Shader 
 		std::shared_ptr<Shader> shader = pickShader(material->getType());
-
-		//2 更新shader的uniform
+		// 更新shader的uniform
 		shader->begin();
 		switch (material->getType()) {
 		case MaterialType::PhongMaterial: {
 			std::shared_ptr<PhongMaterial> phongMat = std::dynamic_pointer_cast<PhongMaterial>(material);
 
-			/* 视锥体裁剪 */
-			glm::mat4 modelMatrix = mesh->getModelMatrix();
-			worldCenter = glm::vec3(modelMatrix * glm::vec4(geometry->boundingSphereCenter, 1.0f));
-			worldRadius = geometry->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]), glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
-
-			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
-			Plane planes[6];
-			ExtractPlanes(planes, viewProj);
-			if (!SphereInFrustum(worldCenter, worldRadius, planes))
-				return;
-
+			/* 视锥体剔除 */
+			{
+				glm::mat4 modelMatrix = mesh->getModelMatrix();
+				worldCenter = glm::vec3(modelMatrix * glm::vec4(geometry->boundingSphereCenter, 1.0f));
+				worldRadius = geometry->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]), glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
+				glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
+				Plane planes[6];
+				ExtractPlanes(planes, viewProj);
+				if (!SphereInFrustum(worldCenter, worldRadius, planes))
+					return;
+			}
+			
 			//diffuse贴图帧更新
 			//将纹理采样器与纹理单元进行挂钩
 			shader->setInt("sampler", 0);
@@ -672,7 +672,7 @@ void Renderer::renderObject(
 		}
 		glBindVertexArray(0);
 
-
+		// TODO: 根据物体是否需要渲染AABB来决定是否渲染
 		{
 			// 渲染 AABB 线框
 			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();

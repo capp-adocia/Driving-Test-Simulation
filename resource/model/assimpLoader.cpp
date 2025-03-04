@@ -1,4 +1,4 @@
-﻿/*****************************************************************//**
+/*****************************************************************//**
  * \file   assimpLoader.cpp
  * \brief  
  * 
@@ -9,6 +9,9 @@
 #include "assimpLoader.h"
 #include "../../util/math/math.h"
 #include "../../render/material/phongMaterial.h"
+
+std::vector<glm::vec3> AssimpLoader::allVertices = {};
+std::shared_ptr<Mesh> AssimpLoader::loadMesh = {};
 
 std::shared_ptr<Object> AssimpLoader::load(const std::string& path) {
     std::size_t lastIndex = path.find_last_of("//");
@@ -29,7 +32,6 @@ std::shared_ptr<Object> AssimpLoader::load(const std::string& path) {
     }
 
     processNode(scene->mRootNode, rootNode, scene, rootPath);
-
     return rootNode;
 }
 
@@ -45,12 +47,22 @@ void AssimpLoader::processNode(aiNode* ainode, std::shared_ptr<Object> parent, c
     node->setAngleY(eulerAngle.y);
     node->setAngleZ(eulerAngle.z);
     node->setScale(scale);
+
+    
     // 处理当前节点的所有网格
     for (size_t i = 0; i < ainode->mNumMeshes; i++) {
         int meshID = ainode->mMeshes[i];
         aiMesh* aimesh = scene->mMeshes[meshID];
         auto mesh = processMesh(aimesh, scene, rootPath);
+
+        AssimpLoader::loadMesh = mesh;
         node->addChild(mesh);
+
+        // 收集当前网格的所有顶点
+        for (size_t j = 0; j < aimesh->mNumVertices; j++) {
+            aiVector3D vertex = aimesh->mVertices[j];
+            allVertices.emplace_back(vertex.x, vertex.y, vertex.z);
+        }
     }
 
     // 递归处理所有子节点
@@ -92,7 +104,6 @@ std::shared_ptr<Mesh> AssimpLoader::processMesh(aiMesh* aimesh, const aiScene* s
             indices.push_back(face.mIndices[j]);
         }
     }
-
     // 创建几何体对象
     std::shared_ptr<Geometry> geometry = std::make_shared<Geometry>(positions, normals, uvs, indices);
     std::shared_ptr<PhongMaterial> material = std::make_shared<PhongMaterial>();
