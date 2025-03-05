@@ -15,7 +15,6 @@ enum class ObjectType {
     Mesh,
     Scene,
     InstanceMesh,
-    Line,
 };
 
 class Object : public std::enable_shared_from_this<Object> {

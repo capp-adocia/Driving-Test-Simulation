@@ -440,7 +440,7 @@ void Renderer::renderObject(
 				if (!SphereInFrustum(worldCenter, worldRadius, planes))
 					return;
 			}
-			
+
 			//diffuse贴图帧更新
 			//将纹理采样器与纹理单元进行挂钩
 			shader->setInt("sampler", 0);
@@ -626,7 +626,7 @@ void Renderer::renderObject(
 
 			//相机信息更新
 			shader->setVector3("cameraPosition", camera->mPosition);
-			
+
 			shader->setFloat("uvScale", grassMat->getUVScale());
 			shader->setFloat("lightIntensity", grassMat->getLightIntensity());
 
@@ -661,205 +661,33 @@ void Renderer::renderObject(
 			std::shared_ptr<InstanceMesh> instanceMesh = std::dynamic_pointer_cast<InstanceMesh>(mesh);
 			glDrawElementsInstanced(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0, instanceMesh->getInstanceCount());
 		}
-		else if (object->getType() == ObjectType::Line)
-		{
-
-		}
 		else
 		{
 			// 单个绘制
 			glDrawElements(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0);
 		}
 		glBindVertexArray(0);
+		shader->end();
 
 		// TODO: 根据物体是否需要渲染AABB来决定是否渲染
 		{
 			// 渲染 AABB 线框
 			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
+			mLineShader->begin();
 			{
 				// 生成球体线框顶点
 				std::vector<glm::vec3> vertices = GenerateSphereWireframe(worldCenter, worldRadius, 8, 16);
-				mLineShader->begin();
-				GLint viewProjLoc = glGetUniformLocation(mLineShader->getProgram(), "viewProj");
-				glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
-				GLint lineColorLoc = glGetUniformLocation(mLineShader->getProgram(), "lineColor");
-				glUniform3f(lineColorLoc, 0.0f, 1.0f, 0.0f);
+				mLineShader->setMatrix4x4("viewProj", viewProj);
+				mLineShader->setVector3("lineColor", glm::vec3(0.0f, 1.0f, 0.0f));
 				glBindVertexArray(vaoSphere);
 				glBindBuffer(GL_ARRAY_BUFFER, vboSphere);
 				glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
 				glDrawArrays(GL_LINES, 0, (int)vertices.size());
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				glBindVertexArray(0);
-				glUseProgram(0);
 			}
+			mLineShader->end();
 		}
 	}
 
 }
-
-
-//
-//void Renderer::render(
-//	const std::vector<Mesh*>& meshes,
-//	Camera* camera,
-//	PointLight* pointLight,
-//	AmbientLight* ambLight
-//) {
-//	//1 设置当前帧绘制的时候，opengl的必要状态机参数
-//	glEnable(GL_DEPTH_TEST);
-//	glDepthFunc(GL_LESS);
-//
-//	//2 清理画布 
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	//3 遍历mesh进行绘制
-//	for (int i = 0; i < meshes.size(); i++) {
-//		auto mesh = meshes[i];
-//		auto geometry = mesh->mGeometry;
-//		auto material = mesh->mMaterial;
-//
-//		//1 决定使用哪个Shader 
-//		Shader* shader = pickShader(material->mType);
-//
-//		//2 更新shader的uniform
-//		shader->begin();
-//
-//		switch (material->mType) {
-//		case MaterialType::PhongMaterial: {
-//			PhongMaterial* phongMat = (PhongMaterial*)material;
-//
-//			//diffuse贴图帧更新
-//			//将纹理采样器与纹理单元进行挂钩
-//			shader->setInt("sampler", 0);
-//			//将纹理与纹理单元进行挂钩
-//			phongMat->mDiffuse->bind();
-//
-//			//高光蒙版的帧更新
-//			shader->setInt("specularMaskSampler", 1);
-//			phongMat->mSpecularMask->bind();
-//
-//			//mvp
-//			shader->setMatrix4x4("modelMatrix", mesh->getModelMatrix());
-//			shader->setMatrix4x4("viewMatrix", camera->getViewMatrix());
-//			shader->setMatrix4x4("projectionMatrix", camera->getProjectionMatrix());
-//
-//			auto normalMatrix = glm::mat3(glm::transpose(glm::inverse(mesh->getModelMatrix())));
-//			shader->setMatrix3x3("normalMatrix", normalMatrix);
-//
-//			//光源参数的uniform更新
-//			shader->setVector3("lightPosition", pointLight->getPosition());
-//			shader->setVector3("lightColor", pointLight->mColor);
-//			shader->setFloat("specularIntensity", pointLight->mSpecularIntensity);
-//			shader->setFloat("k2", pointLight->mK2);
-//			shader->setFloat("k1", pointLight->mK1);
-//			shader->setFloat("kc", pointLight->mKc);
-//
-//			shader->setFloat("shiness", phongMat->mShiness);
-//
-//			shader->setVector3("ambientColor", ambLight->mColor);
-//
-//			//相机信息更新
-//			shader->setVector3("cameraPosition", camera->mPosition);
-//
-//		}
-//										break;
-//		case MaterialType::WhiteMaterial: {
-//			//mvp
-//			shader->setMatrix4x4("modelMatrix", mesh->getModelMatrix());
-//			shader->setMatrix4x4("viewMatrix", camera->getViewMatrix());
-//			shader->setMatrix4x4("projectionMatrix", camera->getProjectionMatrix());
-//		}
-//										break;
-//		default:
-//			continue;
-//		}
-//
-//		//3 绑定vao
-//		glBindVertexArray(geometry->getVao());
-//
-//		//4 执行绘制命令
-//		glDrawElements(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0);
-//	}
-//}
-
-
-
-//void Renderer::render(
-//	const std::vector<Mesh*>& meshes,
-//	Camera* camera,
-//	DirectionalLight* dirLight,
-//	AmbientLight* ambLight
-//) {
-//	//1 设置当前帧绘制的时候，opengl的必要状态机参数
-//	glEnable(GL_DEPTH_TEST);
-//	glDepthFunc(GL_LESS);
-//
-//	//2 清理画布 
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	//3 遍历mesh进行绘制
-//	for (int i = 0; i < meshes.size(); i++) {
-//		auto mesh = meshes[i];
-//		auto geometry = mesh->mGeometry;
-//		auto material = mesh->mMaterial;
-//
-//		//1 决定使用哪个Shader 
-//		Shader* shader = pickShader(material->mType);
-//
-//		//2 更新shader的uniform
-//		shader->begin();
-//
-//		switch (material->mType) {
-//		case MaterialType::PhongMaterial: {
-//			PhongMaterial* phongMat = (PhongMaterial*)material;
-//
-//			//diffuse贴图帧更新
-//			//将纹理采样器与纹理单元进行挂钩
-//			shader->setInt("sampler", 0);
-//			//将纹理与纹理单元进行挂钩
-//			phongMat->mDiffuse->bind();
-//
-//			//高光蒙版的帧更新
-//			shader->setInt("specularMaskSampler", 1);
-//			phongMat->mSpecularMask->bind();
-//
-//			//mvp
-//			shader->setMatrix4x4("modelMatrix", mesh->getModelMatrix());
-//			shader->setMatrix4x4("viewMatrix", camera->getViewMatrix());
-//			shader->setMatrix4x4("projectionMatrix", camera->getProjectionMatrix());
-//
-//			auto normalMatrix = glm::mat3(glm::transpose(glm::inverse(mesh->getModelMatrix())));
-//			shader->setMatrix3x3("normalMatrix", normalMatrix);
-//
-//			//光源参数的uniform更新
-//			shader->setVector3("lightDirection", dirLight->mDirection);
-//			shader->setVector3("lightColor", dirLight->mColor);
-//			shader->setFloat("specularIntensity", dirLight->mSpecularIntensity);
-//
-//			shader->setFloat("shiness", phongMat->mShiness);
-//
-//			shader->setVector3("ambientColor", ambLight->mColor);
-//
-//			//相机信息更新
-//			shader->setVector3("cameraPosition", camera->mPosition);
-//
-//		}
-//										break;
-//		case MaterialType::WhiteMaterial: {
-//			//mvp
-//			shader->setMatrix4x4("modelMatrix", mesh->getModelMatrix());
-//			shader->setMatrix4x4("viewMatrix", camera->getViewMatrix());
-//			shader->setMatrix4x4("projectionMatrix", camera->getProjectionMatrix());
-//		}
-//										break;
-//		default:
-//			continue;
-//		}
-//
-//		//3 绑定vao
-//		glBindVertexArray(geometry->getVao());
-//
-//		//4 执行绘制命令
-//		glDrawElements(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0);
-//	}
-//}
