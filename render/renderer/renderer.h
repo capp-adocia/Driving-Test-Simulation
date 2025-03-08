@@ -69,6 +69,7 @@ private:
     std::shared_ptr<Shader> mPhongInstShader;
     std::shared_ptr<Shader> mGrassInstShader;
     std::shared_ptr<Shader> mLineShader;
+    std::shared_ptr<Shader> mPhongNormalShader;
 
 private:
     std::vector<std::shared_ptr<Mesh>> mOpacityObjects; // 半透明不透明物体

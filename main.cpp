@@ -41,6 +41,7 @@
 #include "render/material/phongEnvMaterial.h"
 #include "render/material/phongInstanceMaterial.h"
 #include "render/material/GrassInstanceMaterial.h"
+#include "render/material/phongNormalMaterial.h"
 #include "render/mesh/InstanceMesh.h"
 #include "./physics/physx_tool.h"
 #include "util/profiler/benchmark.h"
@@ -262,59 +263,6 @@ void updatePhysics(float deltaTime) {
 	}
 }
 
-
-// 绘制AABB函数
-void DrawAABB(const glm::vec3& worldMin, const glm::vec3& worldMax) {
-	ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-
-	// 生成世界空间的8个角点
-	std::array<glm::vec3, 8> corners = {
-		glm::vec3(worldMin.x, worldMin.y, worldMin.z), // 000
-		glm::vec3(worldMax.x, worldMin.y, worldMin.z), // X
-		glm::vec3(worldMax.x, worldMax.y, worldMin.z), // X Y
-		glm::vec3(worldMin.x, worldMax.y, worldMin.z), // Y
-		glm::vec3(worldMin.x, worldMin.y, worldMax.z), // Z
-		glm::vec3(worldMax.x, worldMin.y, worldMax.z), // X Z
-		glm::vec3(worldMax.x, worldMax.y, worldMax.z), // X Y Z
-		glm::vec3(worldMin.x, worldMax.y, worldMax.z)  // Y Z
-	};
-
-	// 相机的视图投影矩阵和视口信息
-	glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
-	glm::ivec4 viewport = glm::ivec4(0, 0, glApp.getWidth(), glApp.getHeight()); // 视口参数
-
-	// 将3D点转换为屏幕坐标
-	std::array<ImVec2, 8> screenPoints;
-	for (int i = 0; i < 8; ++i) {
-		// 应用视图投影矩阵
-		glm::vec4 clipPos = viewProj * glm::vec4(corners[i], 1.0f);
-		// 透视除法
-		glm::vec3 ndcPos = glm::vec3(clipPos) / clipPos.w;
-		// 转换为屏幕坐标
-		screenPoints[i] = ImVec2(
-			(ndcPos.x + 1.0f) * 0.5f * viewport.z + viewport.x,
-			(1.0f - ndcPos.y) * 0.5f * viewport.w + viewport.y
-		);
-	}
-
-	// 定义AABB的12条边（连接8个角点的索引）
-	const std::array<std::pair<int, int>, 12> edges = { {
-		{0,1}, {1,2}, {2,3}, {3,0}, // 底面
-		{4,5}, {5,6}, {6,7}, {7,4}, // 顶面
-		{0,4}, {1,5}, {2,6}, {3,7} // 侧面连接
-	} };
-
-	// 使用ImGui绘制线段
-	ImU32 color = IM_COL32(255, 0, 0, 255); // 红色
-	for (const auto& edge : edges) {
-		draw_list->AddLine(
-			screenPoints[edge.first],
-			screenPoints[edge.second],
-			color,
-			1.0f // 线宽
-		);
-	}
-}
 static bool showAABB = true;
 void renderIMGUI()
 {
@@ -354,38 +302,6 @@ void renderIMGUI()
 	glViewport(0, 0, display_w, display_h);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
-
-//void computeAABBsphere(glm::vec3& center, float& radius)
-//{
-//	auto& geo = std::dynamic_pointer_cast<Mesh>(scene->getChildren()[2])->getGeometry();
-//	// 生成8个点
-//	// 局部坐标系的 AABB 角点
-//	std::array<glm::vec3, 8> localCorners = {
-//		glm::vec3(geo->localMin.x, geo->localMin.y, geo->localMin.z), // 000
-//		glm::vec3(geo->localMax.x, geo->localMin.y, geo->localMin.z), // X
-//		glm::vec3(geo->localMax.x, geo->localMax.y, geo->localMin.z), // X Y
-//		glm::vec3(geo->localMin.x, geo->localMax.y, geo->localMin.z), // Y
-//		glm::vec3(geo->localMin.x, geo->localMin.y, geo->localMax.z), // Z
-//		glm::vec3(geo->localMax.x, geo->localMin.y, geo->localMax.z), // X Z
-//		glm::vec3(geo->localMax.x, geo->localMax.y, geo->localMax.z), // X Y Z
-//		glm::vec3(geo->localMin.x, geo->localMax.y, geo->localMax.z)  // Y Z
-//	};
-//	glm::mat4 modelMatrix = scene->getChildren()[2]->getModelMatrix(); // 获取物体的模型矩阵
-//	std::array<glm::vec3, 8> worldCorners;
-//	for (int i = 0; i < 8; ++i) {
-//		glm::vec4 worldPos = modelMatrix * glm::vec4(localCorners[i], 1.0f);
-//		worldCorners[i] = glm::vec3(worldPos);
-//	}
-//	glm::vec3 worldMin(std::numeric_limits<float>::max());
-//	glm::vec3 worldMax(std::numeric_limits<float>::lowest());
-//	for (const auto& corner : worldCorners) {
-//		worldMin = glm::min(worldMin, corner);
-//		worldMax = glm::max(worldMax, corner);
-//	}
-//	// 从AABB推导包围球
-//	center = (worldMin + worldMax) * 0.5f;
-//	radius = glm::length(worldMax - worldMin) * 0.5f;
-//}
 
 int main(int argc, char* argv[]) {
 #ifdef DEBUG
@@ -479,8 +395,8 @@ int main(int argc, char* argv[]) {
 				{
 					if (scene->getChildren().size() > sceneChildIndex)
 					{
-						//scene->getChildren()[sceneChildIndex]->setModelMatrix(glm::make_mat4(&shapePose.column0.x));
-						//sceneChildIndex++;
+						scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
+						sceneChildIndex++;
 					}
 					break;
 				}

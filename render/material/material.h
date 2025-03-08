@@ -21,6 +21,7 @@ enum class MaterialType {
 	PhongEnvMaterial, // 环境贴图
 	PhongInstanceMaterial, // 实例绘制
 	GrassInstanceMaterial, // 草地实例绘制
+	PhongNormalMaterial, // 法线贴图
 };
 
 class Material {

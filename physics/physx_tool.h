@@ -336,19 +336,22 @@ bool initVehicles()
 
 void preparePhysics()
 {
-	/* opengl对应图形 */
-	auto planeGeometry = Geometry::createBox(800.f, 0.1f, 800.f);
-	auto planeMaterial = std::make_shared<PhongMaterial>();
-	planeMaterial->mDiffuse = std::make_shared<Texture>("C:\\Users\\Administrator\\Downloads\\rocky_terrain_02_2k.blend\\textures\\rocky_terrain_02_diff_2k.jpg", 0, GL_SRGB_ALPHA);
+	/* opengl图形渲染 */
+	auto planeGeometry = Geometry::createBox(600.f, 0.1f, 600.f);
+	auto planeMaterial = std::make_shared<PhongNormalMaterial>();
+	planeMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/normal/brickwall.jpg", 0, GL_SRGB_ALPHA);
+	planeMaterial->mNormalMap = std::make_shared<Texture>("assets/textures/normal/normal_map.png", 1, GL_RGBA, false);
+	planeMaterial->mShiness = 32.0f;
 	auto plane = std::make_shared<Mesh>(planeGeometry, planeMaterial);
 	scene->addChild(plane);
 
 	// 一个车体
 	//auto boxGeometry = Geometry::createBox(1.5905f, 1.140f, 2.8632f * 2 - 0.3432f); // 宽高长
 	//auto boxMaterial = std::make_shared<PhongMaterial>();
-	//boxMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/box.png", 0, GL_SRGB_ALPHA);
+	//boxMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/box.png", 0, GL_SRGB_ALPHA, false);
 	//auto box = std::make_shared<Mesh>(boxGeometry, boxMaterial);
 	//scene->addChild(box);
+
 	model = AssimpLoader::load("assets/fbx/1.fbx");
 	LOG_DEBUG("模型顶点数量: {}", AssimpLoader::allVertices.size());
 	auto geo = AssimpLoader::loadMesh->getGeometry();
@@ -365,11 +368,13 @@ void preparePhysics()
 	{
 		auto wheelGeometry = Geometry::createCylinder(0.3432f, 0.225f * 2.0f);
 		auto wheelMaterial = std::make_shared<PhongMaterial>();
-		wheelMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA);
+		wheelMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA, false);
 		auto wheel = std::make_shared<Mesh>(wheelGeometry, wheelMaterial);
 		wheel->setAngleZ(90.f);
 		scene->addChild(wheel);
 	}
+
+
 }
 
 void cleanupVehicles()

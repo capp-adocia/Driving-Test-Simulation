@@ -369,9 +369,10 @@ FodyWeavers.xsd
 thirdParty/
 # bin
 bin/
-# 7z
+# backup
 *.7z
+*.zip
 # assets
-assets/
+assets/fbx
 # xmind
 *.xmind

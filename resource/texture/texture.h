@@ -29,8 +29,9 @@ public:
 	static std::shared_ptr<Texture> createDepthStencilmentTexture(unsigned int width, unsigned int height, unsigned int unit);
 	// 创建MASS抗锯齿
 	static std::shared_ptr<Texture> createMultiSampleTexture(const unsigned int width, const unsigned int height, const unsigned int samples, const unsigned int format, const unsigned int unit);
+
 	Texture() = default;
-	Texture(const std::string& path, unsigned int unit, unsigned int internalFormat, bool Mipmap = true);
+	Texture(const std::string& path, unsigned int unit, unsigned int internalFormat = GL_RGBA, bool Mipmap = true);
 	Texture(
 		unsigned int unit,
 		unsigned char* dataIn,

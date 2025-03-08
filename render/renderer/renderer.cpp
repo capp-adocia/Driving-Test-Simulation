@@ -17,6 +17,7 @@
 #include "../material/phongEnvMaterial.h"
 #include "../material/phongInstanceMaterial.h"
 #include "../material/GrassInstanceMaterial.h"
+#include "../material/phongNormalMaterial.h"
 #include "../mesh/InstanceMesh.h"
 #include "../framebuffer/FrameBuffer.h"
 #include <string>
@@ -35,6 +36,7 @@ Renderer::Renderer()
 	, mPhongInstShader(std::make_shared<Shader>("assets/shaders/phongInstance.vert", "assets/shaders/phongInstance.frag"))
 	, mGrassInstShader(std::make_shared<Shader>("assets/shaders/grassInstance.vert", "assets/shaders/grassInstance.frag"))
 	, mLineShader(std::make_shared<Shader>("assets/shaders/line.vert", "assets/shaders/line.frag"))
+	, mPhongNormalShader(std::make_shared<Shader>("assets/shaders/phongNormal.vert", "assets/shaders/phongNormal.frag"))
 	, mOpacityObjects({})
 	, mTransparentObjects({})
 {
@@ -318,6 +320,11 @@ std::shared_ptr<Shader> Renderer::pickShader(MaterialType type)
 	case MaterialType::GrassInstanceMaterial:
 		result = mGrassInstShader;
 		break;
+	case MaterialType::PhongNormalMaterial:
+	{
+		result = mPhongNormalShader;
+		break;
+	}
 	default:
 		LOG_WARN("Unknown material type to pick shader");
 		break;
@@ -647,6 +654,37 @@ void Renderer::renderObject(
 			shader->setFloat("cloudUVScale", grassMat->getCloudUVScale());
 			shader->setFloat("cloudSpeed", grassMat->getCloudSpeed());
 			shader->setFloat("cloudLerp", grassMat->getCloudLerp());
+			break;
+		}
+		case MaterialType::PhongNormalMaterial: {
+			std::shared_ptr<PhongNormalMaterial> phongMat = std::dynamic_pointer_cast<PhongNormalMaterial>(material);
+
+			//diffuse贴图帧更新
+			shader->setInt("sampler", 0);
+			phongMat->mDiffuse->bind();
+			//法线贴图
+			shader->setInt("normalMapSampler", 1);
+			phongMat->mNormalMap->bind();
+			//mvp
+			shader->setMatrix4x4("modelMatrix", mesh->getModelMatrix());
+			shader->setMatrix4x4("viewMatrix", camera->getViewMatrix());
+			shader->setMatrix4x4("projectionMatrix", camera->getProjectionMatrix());
+
+			//光源参数的uniform更新
+			shader->setVector3("directionalLight.color", dirLight->mColor);
+			shader->setVector3("directionalLight.direction", dirLight->mDirection);
+			shader->setFloat("directionalLight.specularIntensity", dirLight->mSpecularIntensity);
+			shader->setFloat("directionalLight.intensity", dirLight->mIntensity);
+
+			shader->setFloat("shiness", phongMat->mShiness);
+
+			shader->setVector3("ambientColor", ambLight->mColor);
+
+			//相机信息更新
+			shader->setVector3("cameraPosition", camera->mPosition);
+
+			//透明度
+			shader->setFloat("opacity", material->getOpacity());
 			break;
 		}
 		default:
