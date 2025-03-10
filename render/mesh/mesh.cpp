@@ -8,9 +8,10 @@
  *********************************************************************/
 #include "mesh.h"
 
-Mesh::Mesh(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material)
+Mesh::Mesh(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material, bool IsShowAABB)
 	: mGeometry(geometry)
 	, mMaterial(material)
+	, mIsShowAABB(IsShowAABB)
 {
 	mType = ObjectType::Mesh;
 }

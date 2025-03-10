@@ -11,7 +11,6 @@
 #include "../../render/material/phongMaterial.h"
 
 std::vector<glm::vec3> AssimpLoader::allVertices = {};
-std::shared_ptr<Mesh> AssimpLoader::loadMesh = {};
 
 std::shared_ptr<Object> AssimpLoader::load(const std::string& path) {
     std::size_t lastIndex = path.find_last_of("//");
@@ -30,7 +29,7 @@ std::shared_ptr<Object> AssimpLoader::load(const std::string& path) {
         assert(false && "Error: Model Read Failed!");
         return nullptr;
     }
-
+    
     processNode(scene->mRootNode, rootNode, scene, rootPath);
     return rootNode;
 }
@@ -54,8 +53,6 @@ void AssimpLoader::processNode(aiNode* ainode, std::shared_ptr<Object> parent, c
         int meshID = ainode->mMeshes[i];
         aiMesh* aimesh = scene->mMeshes[meshID];
         auto mesh = processMesh(aimesh, scene, rootPath);
-
-        AssimpLoader::loadMesh = mesh;
         node->addChild(mesh);
 
         // 收集当前网格的所有顶点
@@ -183,4 +180,19 @@ glm::mat4 AssimpLoader::getMat4f(aiMatrix4x4 value) {
     );
 
     return to;
+}
+
+// 递归查找第一个 Mesh
+std::shared_ptr<Mesh> AssimpLoader::findFirstMesh(const std::shared_ptr<Object>& node)
+{
+    for (const auto& child : node->getChildren()) {
+        if (auto mesh = std::dynamic_pointer_cast<Mesh>(child)) {
+            return mesh;
+        }
+        auto result = findFirstMesh(child);
+        if (result) {
+            return result;
+        }
+    }
+    return nullptr;
 }

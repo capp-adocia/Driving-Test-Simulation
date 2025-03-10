@@ -15,7 +15,7 @@
 
 class InstanceMesh : public Mesh {
 public:
-	explicit InstanceMesh(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material, unsigned int instanceCount = 1);
+	explicit InstanceMesh(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material, unsigned int instanceCount = 1, bool IsShowAABB = false);
 	~InstanceMesh();
 	inline unsigned int getInstanceCount() const { assert(mInstanceCount > 0); return mInstanceCount; }
 	inline std::vector<glm::mat4>& getInstanceMatrices() { assert(!mInstanceMatrices.empty()); return mInstanceMatrices; }

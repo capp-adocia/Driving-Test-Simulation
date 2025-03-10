@@ -46,7 +46,7 @@
 
 // 调试模式配置
 #ifdef DEBUG
-#define VLD_CHECK  // 启用内存泄漏检测
+//#define VLD_CHECK  // 启用内存泄漏检测
 
 #else
 

@@ -23,7 +23,7 @@ public:
     // 使用智能指针返回加载的 Object 对象
     static std::shared_ptr<Object> load(const std::string& path);
     static std::vector<glm::vec3> allVertices;
-    static std::shared_ptr<Mesh> loadMesh;
+    static std::shared_ptr<Mesh> AssimpLoader::findFirstMesh(const std::shared_ptr<Object>& node);
 
 private:
     // 递归处理每个节点，并将处理后的对象添加到 parent 中
@@ -45,6 +45,5 @@ private:
 
     // 将 Assimp 的 aiMatrix4x4 转换为 glm::mat4
     static glm::mat4 getMat4f(aiMatrix4x4 value);
-
 };
 #endif // ASSIMPLOADER_H

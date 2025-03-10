@@ -723,7 +723,6 @@ std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 			float z = positions[i + 2];
 			vertices.emplace_back(x, y, z);
 		}
-        // 计算包围球
 		Util::BoundingSphere sphere = Util::CalculateBoundingSphere(vertices);
 		geometry->boundingSphereCenter = sphere.center;
 		geometry->boundingSphereRadius = sphere.radius;

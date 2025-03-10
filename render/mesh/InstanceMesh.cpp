@@ -8,8 +8,8 @@
  *********************************************************************/
 #include "InstanceMesh.h"
 
-InstanceMesh::InstanceMesh(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material, unsigned int instanceCount)
-	: Mesh(geometry, material)
+InstanceMesh::InstanceMesh(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material, unsigned int instanceCount, bool IsShowAABB)
+	: Mesh(geometry, material, IsShowAABB)
 	, mInstanceCount(instanceCount)
 	, mInstanceMatrices({})
 	, mMatrixVbo(0)

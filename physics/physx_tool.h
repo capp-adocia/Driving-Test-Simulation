@@ -342,24 +342,26 @@ void preparePhysics()
 	planeMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/normal/brickwall.jpg", 0, GL_SRGB_ALPHA);
 	planeMaterial->mNormalMap = std::make_shared<Texture>("assets/textures/normal/normal_map.png", 1, GL_RGBA, false);
 	planeMaterial->mShiness = 32.0f;
-	auto plane = std::make_shared<Mesh>(planeGeometry, planeMaterial);
+	auto plane = std::make_shared<Mesh>(planeGeometry, planeMaterial, true);
 	scene->addChild(plane);
 
 	// 一个车体
 	//auto boxGeometry = Geometry::createBox(1.5905f, 1.140f, 2.8632f * 2 - 0.3432f); // 宽高长
 	//auto boxMaterial = std::make_shared<PhongMaterial>();
 	//boxMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/box.png", 0, GL_SRGB_ALPHA, false);
-	//auto box = std::make_shared<Mesh>(boxGeometry, boxMaterial);
+	//auto box = std::make_shared<Mesh>(boxGeometry, boxMaterial, true);
 	//scene->addChild(box);
 
 	model = AssimpLoader::load("assets/fbx/1.fbx");
 	LOG_DEBUG("模型顶点数量: {}", AssimpLoader::allVertices.size());
-	auto geo = AssimpLoader::loadMesh->getGeometry();
-	// 计算包围球
-	Util::BoundingSphere sphere = Util::CalculateBoundingSphere(AssimpLoader::allVertices);
-	geo->boundingSphereCenter = sphere.center;
-	geo->boundingSphereRadius = sphere.radius;
-
+	if (auto mesh = AssimpLoader::findFirstMesh(model))
+	{
+		mesh->setAABB(true);
+		// 计算包围球
+		Util::BoundingSphere sphere = Util::CalculateBoundingSphere(AssimpLoader::allVertices);
+		mesh->getGeometry()->boundingSphereCenter = sphere.center;
+		mesh->getGeometry()->boundingSphereRadius = sphere.radius;
+	}
 	model->setScale(glm::vec3(0.01f));
 	scene->addChild(model);
 
@@ -369,7 +371,7 @@ void preparePhysics()
 		auto wheelGeometry = Geometry::createCylinder(0.3432f, 0.225f * 2.0f);
 		auto wheelMaterial = std::make_shared<PhongMaterial>();
 		wheelMaterial->mDiffuse = std::make_shared<Texture>("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA, false);
-		auto wheel = std::make_shared<Mesh>(wheelGeometry, wheelMaterial);
+		auto wheel = std::make_shared<Mesh>(wheelGeometry, wheelMaterial, false);
 		wheel->setAngleZ(90.f);
 		scene->addChild(wheel);
 	}

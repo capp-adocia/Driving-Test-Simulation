@@ -8,7 +8,7 @@
  *********************************************************************/
 #include "util/common/preprocessor.h"
 #ifdef VLD_CHECK
-//#include <vld.h>
+#include <vld.h>
 #endif // VLD_CHECK
 #include "render/core.h"
 #include "render/shader.h"
