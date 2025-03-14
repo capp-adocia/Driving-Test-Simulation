@@ -12,7 +12,10 @@
 #include "EngineDrivetrain.h"
 #include "../../resource/model/assimpLoader.h"
 #include "../../util/common/preprocessor.h"
+#include "../../core/EventBus.h"
+#include "../../util/common/tools.h"
 
+Util::PerformanceTime performanceTime;
 /* Scene */
 std::shared_ptr<Scene> scene = nullptr;
 
@@ -210,6 +213,7 @@ void handleSteering(int action, bool isLeft) {
 // 模拟中更新
 void stepPhysics(float dt)
 {
+	MEASURE_START();
 	const PxReal timestep = 1.0f / 60.0f;
 
 	// 第一辆车的物理步进
@@ -224,6 +228,7 @@ void stepPhysics(float dt)
 
 	gScene->simulate(dt);
 	gScene->fetchResults(true);
+	performanceTime.physicsTime = MEASURE_DURATION();
 }
 
 bool initPhysics()

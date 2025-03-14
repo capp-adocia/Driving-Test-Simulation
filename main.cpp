@@ -263,20 +263,22 @@ void updatePhysics(float deltaTime) {
 	}
 }
 
-static bool showAABB = true;
 void renderIMGUI()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
+	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 	// 创建UI并放置一些控件
 	ImGui::Begin("OpenGL"); // 创建一个新的窗口
 	ImGui::Text("FPS: %.2f", io.Framerate); // 显示帧率
-	// 速度
+	performanceTime.frameTime = (1.0f / io.Framerate) * 1000.0f;
+	ImGui::Separator();
+	// vehicle控制
+	ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.4f, 1.0f), "Vehicle Control");
 	{
 		// 获取小车的线性速度
 		const PxVec3 linVel1 = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
@@ -284,23 +286,120 @@ void renderIMGUI()
 		float speedMagnitude = linVel1.magnitude();
 		float speedKmh = speedMagnitude * 3.6f;
 		ImGui::Text("Speed: %.2f km/h", speedKmh);
-	}
-	// 挡位
-	{
+		// 挡位
 		ImGui::Text("Current Gear: %d", gVehicle.mEngineDriveState.gearboxState.currentGear);
 	}
-	// AABB包围球
+	ImGui::Separator();
+	// 创建性能监控区域
+	ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.4f, 1.0f), "Performance Metrics");
 	{
-		if(ImGui::Button("AABB"))
-			showAABB = !showAABB;
+		ImGui::Text("Main Time: %.3f ms", performanceTime.frameTime);
+		ImGui::Text("Render Time: %.3f ms", performanceTime.renderTime);
+		ImGui::Text("Physics Time: %.3f ms", performanceTime.physicsTime);
 	}
-
 	ImGui::End();
+
 	ImGui::Render();
 	int display_w = 0, display_h = 0;
 	SDL_GL_GetDrawableSize(glApp.getWindow(), &display_w, &display_h);
 	glViewport(0, 0, display_w, display_h);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void setRenderModel()
+{
+	const int MAX_NUM_ACTOR_SHAPES = 128;
+
+	PxU32 nbActors = gScene->getNbActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC);
+	PxArray<PxRigidActor*> actors(nbActors);
+	gScene->getActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC, reinterpret_cast<PxActor**>(&actors[0]), nbActors);
+
+	PxShape* shapes[MAX_NUM_ACTOR_SHAPES] = { 0 };
+
+	// 定义跳过的物体类型，例如地面可以作为静态物体跳过
+	const PxActor* skipActor = actors[0];
+	PxU32 sceneChildIndex = 2;  // 从场景的第三个对象开始设置模型矩阵
+    // 遍历所有物体
+	for (PxU32 i = 0; i < static_cast<PxU32>(actors.size()); i++)
+	{
+		if (actors[i] == skipActor)
+		{
+			continue;  // 跳过地面或其他不需要的物体
+		}
+		const PxU32 nbShapes = actors[i]->getNbShapes();
+		PX_ASSERT(nbShapes <= MAX_NUM_ACTOR_SHAPES);
+		actors[i]->getShapes(shapes, nbShapes);
+
+		//printf("Actor %d has %d shapes\n", i, nbShapes);
+		for (PxU32 j = 0; j < nbShapes; j++)  // 遍历每个形状
+		{
+			const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
+			const PxGeometry& shapeGeometry = shapes[j]->getGeometry();
+
+			// 判断物体类型，根据不同形状设置模型矩阵
+			switch (shapeGeometry.getType())
+			{
+			case PxGeometryType::eBOX:
+			{
+				if (scene->getChildren().size() > sceneChildIndex)
+				{
+					// box的模型矩阵
+					scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
+					sceneChildIndex++;  // 增加下一个模型矩阵的索引
+				}
+				break;
+			}
+			case PxGeometryType::eCONVEXMESH:
+			{
+				if (scene->getChildren().size() > sceneChildIndex)
+				{
+					scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
+					sceneChildIndex++;
+				}
+				break;
+			}
+			case PxGeometryType::eSPHERE:
+			{
+				if (scene->getChildren().size() > sceneChildIndex)
+				{
+					scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
+					sceneChildIndex++;
+				}
+				break;
+			}
+			default:
+				break;
+			}
+		}
+	}
+}
+
+void setCarmeraPos()
+{
+	if (auto temp = std::dynamic_pointer_cast<VehicleCameraControl>(cameraControl))
+	{
+		// 开启相机跟随
+		glm::mat4 Model = scene->getChildren()[2]->getModelMatrix();
+		glm::vec3 targetPosition = glm::vec3(Model[3]); // 获取模型矩阵的平移部分，即物体的位置
+		// 提取小车的前向方向（模型矩阵的Z轴为前进方向）
+		glm::vec3 forward = glm::normalize(glm::vec3(Model[2]));
+
+		// 计算相机参数
+		float distanceBehind = 7.0f; // 距离小车后方距离
+		float height = 2.8f;         // 相机高度偏移
+		const glm::vec3 cameraPos = targetPosition - forward * distanceBehind + glm::vec3(0, height, 0);
+		const glm::vec3 cameraTarget = targetPosition + forward; // 看向小车前方
+
+		temp->setCameraPosTarget(cameraPos, cameraTarget); // 设置相机位置和目标点
+	}
+	cameraControl->update(); // 更新相机控制
+}
+
+void render()
+{
+	renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
+	renderer->msaaResolve(framebuffer, fboResolve);
+	renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕GLuint64 gpu_time = 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -340,89 +439,11 @@ int main(int argc, char* argv[]) {
 		if(ImGui::GetIO().Framerate > 0)
 			updatePhysics(1.0f / ImGui::GetIO().Framerate);
 		else stepPhysics(fixedTimeStep);
-
-		const int MAX_NUM_ACTOR_SHAPES = 128;
-
-		PxU32 nbActors = gScene->getNbActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC);
-		PxArray<PxRigidActor*> actors(nbActors);
-		gScene->getActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC, reinterpret_cast<PxActor**>(&actors[0]), nbActors);
-
-		PxShape* shapes[MAX_NUM_ACTOR_SHAPES] = { 0 };
-
-		// 定义跳过的物体类型，例如地面可以作为静态物体跳过
-		const PxActor* skipActor = actors[0];
-		PxU32 sceneChildIndex = 2;  // 从场景的第三个对象开始设置模型矩阵
-
-		for (PxU32 i = 0; i < static_cast<PxU32>(actors.size()); i++)
-		{
-			if (actors[i] == skipActor)
-			{
-				continue;  // 跳过地面或其他不需要的物体
-			}
-			const PxU32 nbShapes = actors[i]->getNbShapes();
-			PX_ASSERT(nbShapes <= MAX_NUM_ACTOR_SHAPES);
-			actors[i]->getShapes(shapes, nbShapes);
-			
-			//printf("Actor %d has %d shapes\n", i, nbShapes);
-			for (PxU32 j = 0; j < nbShapes; j++)  // 遍历每个形状
-			{
-				const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[j], *actors[i]));
-				const PxGeometry& shapeGeometry = shapes[j]->getGeometry();
-				
-				// 判断物体类型，根据不同形状设置模型矩阵
-				switch (shapeGeometry.getType())
-				{
-				case PxGeometryType::eBOX:
-				{
-					if (scene->getChildren().size() > sceneChildIndex)
-					{
-						// box的模型矩阵
-						scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
-						sceneChildIndex++;  // 增加下一个模型矩阵的索引
-					}
-					break;
-				}
-				case PxGeometryType::eCONVEXMESH:
-				{
-					if (scene->getChildren().size() > sceneChildIndex)
-					{
-						scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
-						sceneChildIndex++;
-					}
-					break;
-				}
-				case PxGeometryType::eSPHERE:
-				{
-					if (scene->getChildren().size() > sceneChildIndex)
-					{
-						scene->getChildren()[sceneChildIndex]->setModelPhysXMatrix(glm::make_mat4(&shapePose.column0.x));
-						sceneChildIndex++;
-					}
-					break;
-				}
-				default:
-					break;
-				}
-			}
-		}
-
-		if (auto temp = std::dynamic_pointer_cast<VehicleCameraControl>(cameraControl))
-		{
-			// 开启相机跟随
-			glm::mat4 Model = scene->getChildren()[2]->getModelMatrix();
-			glm::vec3 targetPosition = glm::vec3(Model[3]); // 获取模型矩阵的平移部分，即物体的位置
-			// 提取小车的前向方向（模型矩阵的Z轴为前进方向）
-			glm::vec3 forward = glm::normalize(glm::vec3(Model[2]));
-
-			// 计算相机参数
-			float distanceBehind = 7.0f; // 距离小车后方距离
-			float height = 2.8f;         // 相机高度偏移
-			const glm::vec3 cameraPos = targetPosition - forward * distanceBehind + glm::vec3(0, height, 0);
-			const glm::vec3 cameraTarget = targetPosition + forward; // 看向小车前方
-
-			temp->setCameraPosTarget(cameraPos, cameraTarget); // 设置相机位置和目标点
-		}
-		cameraControl->update(); // 更新相机控制
+		// 设置渲染容器中的model matrix
+		setRenderModel();
+		// 根据不同模式设置相机位置
+		setCarmeraPos();
+		
 		/*//////////////////////////////////////////////////////////////////////////////*/
 		//glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
 		//float radius = 0.0f;
@@ -434,18 +455,12 @@ int main(int argc, char* argv[]) {
 		/*//////////////////////////////////////////////////////////////////////////////*/
 		renderer->setClearColor(clearColor);
 
-		if (showAABB)
+		MEASURE_START();
 		{
-			renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
-			renderer->msaaResolve(framebuffer, fboResolve);
-			renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
+			render();
 		}
-		else
-		{
-			renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
-			renderer->msaaResolve(framebuffer, fboResolve);
-			renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
-		}
+		performanceTime.renderTime = MEASURE_DURATION();
+
 		renderIMGUI(); // 渲染IMGUI界面
 	}
 	// PhysX

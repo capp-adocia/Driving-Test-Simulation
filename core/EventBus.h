@@ -9,6 +9,7 @@
 #ifndef EVENTBUS_H
 #define EVENTBUS_H
 #include "../util/common/standard.h"
+#include "Event.h"
 #include <entt/entt.hpp>
 
 struct EventType {

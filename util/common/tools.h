@@ -24,7 +24,7 @@
     } while(0);
 
 namespace Util {
-/* 字符串格式化实现 V1 */
+    /* 字符串格式化实现 V1 */
     inline std::string formatMessage(const std::string& format) {
         return format;
     }
@@ -70,13 +70,13 @@ namespace Util {
         return *reinterpret_cast<T*>((void*)&ptr);
     }
 
-    
+
     struct BoundingSphere {
         glm::vec3 center;
         float radius;
     };
     BoundingSphere CalculateBoundingSphere(const std::vector<glm::vec3>& vertices); // 计算包围球
-    
+
     std::vector<glm::vec3> GenerateSphereWireframe(const glm::vec3& center, float radius, int longitudeSegments = 32, int latitudeSegments = 16); // 生成球体线框
 
     // Ax + By + Cz + D = 0
@@ -85,9 +85,21 @@ namespace Util {
         glm::vec3 normal;
         float distance;
     };
-    
+
     bool SphereInFrustum(const glm::vec3& center, float radius, const Plane planes[6]); // 判断球体是否在视锥体内
     Plane NormalizePlane(const glm::vec4& p);
     void ExtractPlanes(Plane planes[6], const glm::mat4& m); // 从view和projection矩阵中提取的六个平面
+
+
+    struct PerformanceTime {
+        float frameTime;
+        float renderTime;
+        float physicsTime;
+    };
+#define NOW() std::chrono::high_resolution_clock::now()
+#define MEASURE_START() auto measure_start_##__LINE__ = NOW()
+#define MEASURE_DURATION() \
+    std::chrono::duration_cast<std::chrono::microseconds>(NOW() - measure_start_##__LINE__).count() / 1000.0f
+
 }
 #endif // TOOLS_H
