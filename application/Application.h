@@ -56,36 +56,41 @@ public:
     {
         _width = width;
         _height = height;
+        /* 
+        * SDL
+        */
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             LOG_WARN("Failed to initialize SDL: {}", SDL_GetError());
         }
-
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-        // 创建SDL窗口
         SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
         _window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
-        if (_window == nullptr)
+        if (!_window)
         {
             LOG_WARN("Failed to create SDL window: {}", SDL_GetError());
-            SDL_Quit();
-            assert(false);
+            SDL_Quit();assert(false);
         }
-
-        // 创建OpenGL上下文
         _context = SDL_GL_CreateContext(_window);
-        if (_context == nullptr) {
+        if (!_context) {
             LOG_WARN("Failed to create OpenGL context: {}", SDL_GetError());
             SDL_DestroyWindow(_window);
-            SDL_Quit();
-            assert(false);
+            SDL_Quit();assert(false);
         }
-
         SDL_GL_MakeCurrent(_window, _context);
-        SDL_GL_SetSwapInterval(0); // Enable vsync
-
-        // 初始化GLAD
+        SDL_GL_SetSwapInterval(0); // Vsync
+        /*
+        * Dear ImGui
+        */
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsLight();
+        ImGui_ImplOpenGL3_Init("#version 130");
+        ImGui_ImplSDL2_InitForOpenGL(glApp.getWindow(), glApp.getContext());
+        /*
+        * GLAD
+        */
         if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
             LOG_WARN("Failed to initialize GLAD");
             SDL_GL_DeleteContext(_context);
@@ -93,13 +98,13 @@ public:
             SDL_Quit();
             assert(false);
         }
-
         // 设置OpenGL视口
         glViewport(0, 0, width, height);
     }
+    // 处理键盘事件
     void handleEvent(SDL_Event& event)
     {
-        // 处理键盘事件
+        
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
             keyCallBack(event.key.keysym.sym, event.key.keysym.scancode, event.type, 0);
         }
@@ -144,14 +149,14 @@ public:
     }
     void destroy()
     {
-        // SDL2
-        SDL_GL_DeleteContext(_context);
-        SDL_DestroyWindow(_window);
-        SDL_Quit();
         // ImGui
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext();
+        // SDL2
+        SDL_GL_DeleteContext(_context);
+        SDL_DestroyWindow(_window);
+        SDL_Quit();
     }
 
     inline void setResizeCallBack(ResizeCallBack callback) { _ResizeCallBack = callback; } // 设置窗口大小改变回调函数

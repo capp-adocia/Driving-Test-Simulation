@@ -242,16 +242,6 @@ void prepareCamera() {
 	camera->mPosition = glm::vec3(0.0f, 2.5f, 12.0f);
 }
 
-void initIMGUI() {
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext(); // 创建imgui上下文
-	ImGui::StyleColorsLight(); // 选择一种主题
-
-	// 初始化ImGui与GLFW和OpenGL的接口
-	ImGui_ImplOpenGL3_Init("#version 130");
-	ImGui_ImplSDL2_InitForOpenGL(glApp.getWindow(), glApp.getContext());
-}
-
 const float fixedTimeStep = 1.0f / 60.0f; // 固定 60Hz 物理更新
 static float accumulatedTime = 0.0f;      // 记录累计时间
 
@@ -272,12 +262,13 @@ void renderIMGUI()
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+
 	// 创建UI并放置一些控件
 	ImGui::Begin("OpenGL"); // 创建一个新的窗口
 	ImGui::Text("FPS: %.2f", io.Framerate); // 显示帧率
 	performanceTime.frameTime = (1.0f / io.Framerate) * 1000.0f;
 	ImGui::Separator();
-	// vehicle控制
+	// Vehicle控制
 	ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.4f, 1.0f), "Vehicle Control");
 	{
 		// 获取小车的线性速度
@@ -399,7 +390,7 @@ void render()
 {
 	renderer->render(scene, camera, dirLight, ambLight, framebuffer->getFBO()); // 渲染到离屏缓冲区
 	renderer->msaaResolve(framebuffer, fboResolve);
-	renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕GLuint64 gpu_time = 0;
+	renderer->render(sceneInscreen, camera, dirLight, ambLight); // 渲染到屏幕
 }
 
 int main(int argc, char* argv[]) {
@@ -429,7 +420,6 @@ int main(int argc, char* argv[]) {
 	prepareCamera(); // 准备相机
 	// 准备帧缓冲对象
 	prepare(); // 准备其他资源
-	initIMGUI(); // 初始化IMGUI
 	if (!initPhysics()) // 初始化物理引擎
 		LOG_ERROR("Failed to initialize PhysX");
 	preparePhysics(); // 准备渲染图形

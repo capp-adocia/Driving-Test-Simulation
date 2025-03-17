@@ -140,20 +140,16 @@ void Renderer::projectObject(std::shared_ptr<Object> obj)
 	{
 		std::shared_ptr<Mesh> mesh = std::static_pointer_cast<Mesh>(obj);
 		std::shared_ptr<Material> material = mesh->getMaterial();
-		if (material->getBlend())
-		{
+		if (material->getBlend()) {
 			mTransparentObjects.push_back(mesh);
 		}
-		else
-		{
+		else {
 			mOpacityObjects.push_back(mesh);
 		}
 	}
 	auto children = obj->getChildren();
-	for (auto child : children)
-	{
-		projectObject(child);
-	}
+
+	for (auto child : children) projectObject(child);
 }
 
 std::shared_ptr<Shader> Renderer::pickShader(MaterialType type)
