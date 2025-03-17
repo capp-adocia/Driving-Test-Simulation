@@ -28,5 +28,7 @@
 #include <ctime>
 #include <cassert>
 #include <typeindex>
+#include <variant>
+#include <array>
 
 #endif // STANDARD_H

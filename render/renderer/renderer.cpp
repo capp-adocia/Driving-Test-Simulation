@@ -296,35 +296,34 @@ void Renderer::renderObject(
 		/* !视锥体剔除 */
 		if(material->getType() != MaterialType::CubeMaterial && material->getType() != MaterialType::ScreenMaterial)
 		{
-			glm::mat4 modelMatrix = mesh->getModelMatrix();
-			worldCenter = glm::vec3(modelMatrix * glm::vec4(geometry->boundingSphereCenter, 1.0f));
-			worldRadius = geometry->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]), glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
+			Util::BoundingVolume volume = Util::TransformAABB(geometry->getAABB(), mesh->getModelMatrix());
 			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
 			Util::Plane planes[6];
 			Util::ExtractPlanes(planes, viewProj);
-			if (!Util::SphereInFrustum(worldCenter, worldRadius, planes))
+			if (!Util::FrustumCullVariant(volume, planes))
 				return;
-		}
-		// TODO: 根据物体是否需要渲染AABB来决定是否渲染
-		if (mesh->ShowAABB())
-		{
-			// 渲染 AABB 线框
-			glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
-			mLineShader->begin();
+			// TODO: 根据物体是否需要渲染AABB来决定是否渲染
+			if (mesh->ShowAABB())
 			{
-				// 生成球体线框顶点
-				std::vector<glm::vec3> vertices = Util::GenerateSphereWireframe(worldCenter, worldRadius, 8, 16);
-				mLineShader->setMatrix4x4("viewProj", viewProj);
-				mLineShader->setVector3("lineColor", glm::vec3(0.0f, 1.0f, 0.0f));
-				glBindVertexArray(vaoSphere);
-				glBindBuffer(GL_ARRAY_BUFFER, vboSphere);
-				glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
-				glDrawArrays(GL_LINES, 0, (int)vertices.size());
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-				glBindVertexArray(0);
+				// 渲染 AABB 线框
+				glm::mat4 viewProj = camera->getProjectionMatrix() * camera->getViewMatrix();
+				mLineShader->begin();
+				{
+					// 生成球体线框顶点
+					std::vector<glm::vec3> vertices = Util::GenerateBoundingWireframe(volume);
+					mLineShader->setMatrix4x4("viewProj", viewProj);
+					mLineShader->setVector3("lineColor", glm::vec3(0.0f, 1.0f, 0.0f));
+					glBindVertexArray(vaoSphere);
+					glBindBuffer(GL_ARRAY_BUFFER, vboSphere);
+					glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_DYNAMIC_DRAW);
+					glDrawArrays(GL_LINES, 0, (int)vertices.size());
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
+					glBindVertexArray(0);
+				}
+				mLineShader->end();
 			}
-			mLineShader->end();
 		}
+
 		// 决定使用哪个Shader 
 		std::shared_ptr<Shader> shader = pickShader(material->getType());
 		// 更新shader的uniform
@@ -582,8 +581,7 @@ void Renderer::renderObject(
 			std::shared_ptr<InstanceMesh> instanceMesh = std::dynamic_pointer_cast<InstanceMesh>(mesh);
 			glDrawElementsInstanced(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0, instanceMesh->getInstanceCount());
 		}
-		else
-		{
+		else {
 			// 单个绘制
 			glDrawElements(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0);
 		}

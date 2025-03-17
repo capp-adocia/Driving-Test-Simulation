@@ -37,15 +37,6 @@ PxPvd* gPvd = NULL;
 
 std::shared_ptr<Object> model = nullptr;
 
-//struct physx_actor_entity
-//{
-//	PxRigidActor* actorPtr;
-//	PxU32 actorId;
-//};
-//
-//std::vector<physx_actor_entity> physx_actors;
-//static PxU32 stackCounter = 0;
-
 void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 {
 	PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfExtent, halfExtent, halfExtent), *gMaterial);
@@ -59,8 +50,6 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 			body->attachShape(*shape);
 			PxRigidBodyExt::updateMassAndInertia(*body, 20.0f);
 			gScene->addActor(*body);
-
-			//physx_actors.push_back({ body, stackCounter++ });
 		}
 	}
 	shape->release();
@@ -70,25 +59,22 @@ void createStack(const PxTransform& t, PxU32 size, PxReal halfExtent)
 	boxMeterial->mDiffuse = std::make_shared<Texture>("assets/textures/box.png", 0, GL_SRGB_ALPHA);
 	for (size_t i = 0; i < (size * (size + 1)) / 2; i++)
 	{
-		auto Box2 = std::make_shared<Mesh>(boxGeometry, boxMeterial);
+		auto Box2 = std::make_shared<Mesh>(boxGeometry, boxMeterial, true);
 		scene->addChild(Box2);
 	}
 }
 
 void createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
 {
-	//static PxU32 dynamicCounter = 0;
-
 	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, t, geometry, *gMaterial, 10.0f);
 	dynamic->setAngularDamping(0.5f);
 	dynamic->setLinearVelocity(velocity);
 	gScene->addActor(*dynamic);
-	//physx_actors.push_back({ dynamic, dynamicCounter++ });
 
 	auto Geometry = Geometry::createSphere(0.5f);
 	auto Material = std::make_shared<PhongMaterial>();
-	Material->mDiffuse = std::make_shared<Texture>("assets/textures/wall.jpg", 0, GL_SRGB_ALPHA);
-	auto sphere = std::make_shared<Mesh>(Geometry, Material);
+	Material->mDiffuse = std::make_shared<Texture>("assets/textures/wall.jpg", 0, GL_SRGB_ALPHA, false);
+	auto sphere = std::make_shared<Mesh>(Geometry, Material, true);
 	scene->addChild(sphere);
 }
 
@@ -363,9 +349,9 @@ void preparePhysics()
 	{
 		mesh->setAABB(true);
 		// 计算包围球
-		Util::BoundingSphere sphere = Util::CalculateBoundingSphere(AssimpLoader::allVertices);
-		mesh->getGeometry()->boundingSphereCenter = sphere.center;
-		mesh->getGeometry()->boundingSphereRadius = sphere.radius;
+		//Util::BoundingSphere sphere = Util::CalculateBoundingSphere(AssimpLoader::allVertices);
+		mesh->getGeometry()->AABB = Util::CalculateBoundingVolume(AssimpLoader::allVertices, Util::BoundingType::Sphere);
+		//mesh->getGeometry()->boundingSphereRadius = sphere.radius;
 	}
 	model->setScale(glm::vec3(0.01f));
 	scene->addChild(model);

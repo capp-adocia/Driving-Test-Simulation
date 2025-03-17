@@ -17,8 +17,8 @@ Geometry::Geometry()
 	, mEbo(0)
 	, mColorVbo(0)
 	, mIndicesCount(0)
-	, boundingSphereCenter(glm::vec3(0.0f))
-	, boundingSphereRadius(0.0f)
+	//, boundingSphereCenter(glm::vec3(0.0f))
+	//, boundingSphereRadius(0.0f)
 {}
 
 Geometry::Geometry(
@@ -34,8 +34,8 @@ Geometry::Geometry(
 	, mEbo(0)
 	, mColorVbo(0)
 	, mIndicesCount(0)
-	, boundingSphereCenter(glm::vec3(0.0f))
-	, boundingSphereRadius(0.0f)
+	//, boundingSphereCenter(glm::vec3(0.0f))
+	//, boundingSphereRadius(0.0f)
 {
 	mIndicesCount = static_cast<uint32_t>(indices.size());
 	
@@ -90,8 +90,8 @@ Geometry::Geometry(const std::vector<float>& positions
 	, mEbo(0)
 	, mColorVbo(0)
 	, mIndicesCount(0)
-	, boundingSphereCenter(glm::vec3(0.0f))
-	, boundingSphereRadius(0.0f)
+	//, boundingSphereCenter(glm::vec3(0.0f))
+	//, boundingSphereRadius(0.0f)
 {
 	mIndicesCount = static_cast<uint32_t>(indices.size());
 
@@ -240,6 +240,13 @@ std::shared_ptr<Geometry> Geometry::createBox(float size) {
 		20, 21, 22, 22, 23, 20  // Left face
 	};
 
+	std::vector<glm::vec3> vertices;
+	vertices.reserve(24);
+	for (size_t i = 0; i < sizeof(positions) / sizeof(float); i += 3) {
+		vertices.emplace_back(positions[i], positions[i + 1], positions[i + 2]);
+	}
+	geometry->AABB = Util::CalculateBoundingVolume(vertices, Util::BoundingType::AABB);
+
 	//2 VBO创建
 	GLuint& posVbo = geometry->mPosVbo, uvVbo = geometry->mUvVbo, normalVbo = geometry->mNormalVbo ;
 	glGenBuffers(1, &posVbo);
@@ -309,12 +316,12 @@ std::shared_ptr<Geometry> Geometry::createBox(const float length, const float he
 		// Left face
 		-halfLength, -halfHeight, -halfWidth, -halfLength, -halfHeight, halfWidth, -halfLength, halfHeight, halfWidth, -halfLength, halfHeight, -halfWidth
 	};
-
-	// 计算包围球
-	geometry->boundingSphereCenter = glm::vec3(0.0f); // 盒子中心是局部坐标系原点
-	geometry->boundingSphereRadius = glm::sqrt(length * length + height * height + width * width) * 0.5f;
+	std::vector<glm::vec3> vertices;
+	for (size_t i = 0; i < sizeof(positions) / sizeof(float); i += 3) {
+		vertices.emplace_back(positions[i], positions[i + 1], positions[i + 2]);
+	}
+	geometry->AABB = Util::CalculateBoundingVolume(vertices, Util::BoundingType::AABB);
 	
-
 	// Define the texture coordinates (assuming a standard cube mapping)
 	float uvs[] = {
 		0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
@@ -453,7 +460,12 @@ std::shared_ptr<Geometry> Geometry::createSphere(float radius) {
 			indices.push_back(p4);
 		}
 	}
-
+	std::vector<glm::vec3> vertices{};
+	vertices.reserve(positions.size() / 3);
+	for (size_t i = 0; i < positions.size(); i += 3) {
+		vertices.emplace_back(positions[i], positions[i + 1], positions[i + 2]);
+	}
+	geometry->AABB = Util::CalculateBoundingVolume(vertices, Util::BoundingType::AABB);
 
 	//4 生成vbo与vao
 	GLuint& posVbo = geometry->mPosVbo, uvVbo = geometry->mUvVbo, normalVbo = geometry->mNormalVbo;
@@ -717,15 +729,11 @@ std::shared_ptr<Geometry> Geometry::createCylinder(float radius, float height) {
 	geometry->mIndicesCount = static_cast<uint32_t>(indices.size());
 	{
 		std::vector<glm::vec3> vertices;
+		vertices.reserve(positions.size() / 3);
 		for (size_t i = 0; i < positions.size(); i += 3) {
-			float x = positions[i];
-			float y = positions[i + 1];
-			float z = positions[i + 2];
-			vertices.emplace_back(x, y, z);
+			vertices.emplace_back(positions[i], positions[i + 1], positions[i + 2]);
 		}
-		Util::BoundingSphere sphere = Util::CalculateBoundingSphere(vertices);
-		geometry->boundingSphereCenter = sphere.center;
-		geometry->boundingSphereRadius = sphere.radius;
+		geometry->AABB = Util::CalculateBoundingVolume(vertices, Util::BoundingType::AABB);
 	}
 
 	// 创建OpenGL对象

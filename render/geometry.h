@@ -36,12 +36,15 @@ public:
 	static std::shared_ptr<Geometry> createPlane(float width, float height);
 	static std::shared_ptr<Geometry> createScreenPlane();
 	static std::shared_ptr<Geometry> createCylinder(float radius, float height);
-
+public:
 	GLuint getVao() const { return mVao; }
 	uint32_t getIndicesCount() const { return mIndicesCount; }
+	inline const Util::BoundingVolume& getAABB() const { return AABB; }
 public:
-	glm::vec3 boundingSphereCenter;  // 局部空间包围球中心
-	float boundingSphereRadius;      // 局部空间包围球半径
+	Util::BoundingVolume AABB;
+	//Util::BoundingSphere boundingSphere;
+	//glm::vec3 boundingSphereCenter;  // 局部空间包围球中心
+	//float boundingSphereRadius;      // 局部空间包围球半径
 
 private:
 	GLuint mVao;
@@ -52,6 +55,5 @@ private:
 	GLuint mColorVbo;
 
 	uint32_t mIndicesCount;
-
 };
 #endif // GEOMETRY_H

@@ -434,15 +434,6 @@ int main(int argc, char* argv[]) {
 		// 根据不同模式设置相机位置
 		setCarmeraPos();
 		
-		/*//////////////////////////////////////////////////////////////////////////////*/
-		//glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
-		//float radius = 0.0f;
-		//computeAABBsphere(center, radius);
-		//auto& geo = std::dynamic_pointer_cast<Mesh>(scene->getChildren()[3])->getGeometry();
-		//glm::mat4 modelMatrix = scene->getChildren()[3]->getModelMatrix();
-		//glm::vec3 worldCenter = glm::vec3(modelMatrix * glm::vec4(geo->boundingSphereCenter, 1.0f));
-		//float worldRadius = geo->boundingSphereRadius * glm::max(glm::length(modelMatrix[0]),glm::max(glm::length(modelMatrix[1]), glm::length(modelMatrix[2])));
-		/*//////////////////////////////////////////////////////////////////////////////*/
 		renderer->setClearColor(clearColor);
 
 		MEASURE_START();
