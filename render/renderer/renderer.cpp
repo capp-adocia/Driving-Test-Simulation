@@ -262,8 +262,8 @@ void Renderer::setPolygonOffsetState(std::shared_ptr<Material> material)
 		glDisable(GL_POLYGON_OFFSET_LINE);
 	}
 }
-static int b = 0;
-static int target = 0;
+std::vector<GLuint> queryIDs;
+static Uint32 queryCount = 0;
 //针对单个object进行渲染
 void Renderer::renderObject(
 	std::shared_ptr<Object> object,
@@ -302,7 +302,7 @@ void Renderer::renderObject(
 			Util::ExtractPlanes(planes, viewProj);
 			if (!Util::FrustumCullVariant(volume, planes))
 				return;
-			// TODO: 根据物体是否需要渲染AABB来决定是否渲染
+			// 根据物体是否需要渲染AABB来决定是否渲染
 			if (mesh->ShowAABB())
 			{
 				// 渲染 AABB 线框

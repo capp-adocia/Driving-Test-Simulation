@@ -71,7 +71,7 @@ void createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec
 	dynamic->setLinearVelocity(velocity);
 	gScene->addActor(*dynamic);
 
-	auto Geometry = Geometry::createSphere(0.5f);
+	auto Geometry = Geometry::createSphere(1.0f);
 	auto Material = std::make_shared<PhongMaterial>();
 	Material->mDiffuse = std::make_shared<Texture>("assets/textures/wall.jpg", 0, GL_SRGB_ALPHA, false);
 	auto sphere = std::make_shared<Mesh>(Geometry, Material, true);
@@ -325,6 +325,20 @@ bool initVehicles()
 	return true;
 }
 
+void setModelMaterial(std::shared_ptr<Object> obj)
+{
+	if (obj->getType() == ObjectType::Mesh)
+	{
+		auto mesh = std::dynamic_pointer_cast<Mesh>(obj);
+		mesh->getMaterial()->setFaceCulling(true);
+	}
+	auto children = obj->getChildren();
+	for (int i = 0; i < children.size(); i++)
+	{
+		setModelMaterial(children[i]);
+	}
+}
+
 void preparePhysics()
 {
 	/* opengl图形渲染 */
@@ -335,7 +349,7 @@ void preparePhysics()
 	planeMaterial->mShiness = 32.0f;
 	auto plane = std::make_shared<Mesh>(planeGeometry, planeMaterial, true);
 	scene->addChild(plane);
-
+	
 	// 一个车体
 	//auto boxGeometry = Geometry::createBox(1.5905f, 1.140f, 2.8632f * 2 - 0.3432f); // 宽高长
 	//auto boxMaterial = std::make_shared<PhongMaterial>();
@@ -349,10 +363,10 @@ void preparePhysics()
 	{
 		mesh->setAABB(true);
 		// 计算包围球
-		//Util::BoundingSphere sphere = Util::CalculateBoundingSphere(AssimpLoader::allVertices);
 		mesh->getGeometry()->AABB = Util::CalculateBoundingVolume(AssimpLoader::allVertices, Util::BoundingType::Sphere);
-		//mesh->getGeometry()->boundingSphereRadius = sphere.radius;
 	}
+	setModelMaterial(model); // 面剔除
+
 	model->setScale(glm::vec3(0.01f));
 	scene->addChild(model);
 

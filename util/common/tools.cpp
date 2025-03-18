@@ -1,6 +1,6 @@
 /*****************************************************************//**
  * \file   tools.cpp
- * \brief  ¹¤¾ßÎÄ¼ş£¬Ìá¹©Ò»Ğ©³£ÓÃµÄº¯Êı
+ * \brief  å·¥å…·æ–‡ä»¶ï¼Œæä¾›ä¸€äº›å¸¸ç”¨çš„å‡½æ•°
  * 
  * \author Capp-Adocia
  * \site https://github.com/capp-adocia/
@@ -71,7 +71,7 @@ namespace Util {
 	{
 		if (auto* aabb = std::get_if<BoundingAABB>(&localAABB))
 		{
-			// ¼ÆËã¾Ö²¿¿Õ¼äAABBµÄ8¸ö½Çµã
+			// è®¡ç®—å±€éƒ¨ç©ºé—´AABBçš„8ä¸ªè§’ç‚¹
 			const glm::vec3 min = aabb->center - aabb->extents;
 			const glm::vec3 max = aabb->center + aabb->extents;
 
@@ -86,11 +86,11 @@ namespace Util {
 				glm::vec3(min.x, max.y, max.z)
 			};
 
-			// ³õÊ¼»¯ÊÀ½ç¿Õ¼äÖĞµÄ¼«Öµ
+			// åˆå§‹åŒ–ä¸–ç•Œç©ºé—´ä¸­çš„æå€¼
 			glm::vec3 worldMin(std::numeric_limits<float>::max());
 			glm::vec3 worldMax(std::numeric_limits<float>::lowest());
 
-			// ±ä»»Ã¿¸ö½Çµã²¢¸üĞÂ¼«Öµ
+			// å˜æ¢æ¯ä¸ªè§’ç‚¹å¹¶æ›´æ–°æå€¼
 			for (const auto& corner : localCorners) {
 				const glm::vec4 worldPos = modelMatrix * glm::vec4(corner, 1.0f);
 				const glm::vec3 worldCorner(worldPos);
@@ -99,7 +99,7 @@ namespace Util {
 				worldMax = glm::max(worldMax, worldCorner);
 			}
 
-			// ¼ÆËãĞÂµÄAABB
+			// è®¡ç®—æ–°çš„AABB
 			const glm::vec3 newCenter = (worldMin + worldMax) * 0.5f;
 			const glm::vec3 newExtents = worldMax - newCenter;
 

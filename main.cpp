@@ -95,8 +95,17 @@ void OnKey(int key, int /*scancode*/, int action, int mods) {
 			handleSteering(action, false); // false right
 			break;
 		case SDLK_SPACE:
-			createDynamic(PxTransform(PxVec3(0, 20, 2), PxQuat(1.0f, 0.0f, 0.0f, 0.0f)), PxSphereGeometry(0.5f), PxVec3(0., 1., 0.) * 10.0f);
+		{
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<> dis(-50.0, 50.0);  // 设置随机数范围
+			for (size_t i = 0; i < 100; i++)
+			{
+				PxVec3 pos(float(dis(gen)), 10.0f, float(dis(gen)));
+				createDynamic(PxTransform(pos, PxQuat(1.0f, 0.0f, 0.0f, 0.0f)), PxSphereGeometry(1.0f), PxVec3(0., 1., 0.) * 10.0f);
+			}
 			break;
+		}
 		case SDLK_q:
 #ifdef MANUALGEAR
 			if (action == SDL_KEYDOWN && gVehicle.mTransmissionCommandState.clutch == 0.0f) {
@@ -288,6 +297,11 @@ void renderIMGUI()
 		ImGui::Text("Render Time: %.3f ms", performanceTime.renderTime);
 		ImGui::Text("Physics Time: %.3f ms", performanceTime.physicsTime);
 	}
+	{
+		PxU32 nbActors = gScene->getNbActors(PxActorTypeFlag::eRIGID_DYNAMIC | PxActorTypeFlag::eRIGID_STATIC);
+		ImGui::Text("Total Stuff Num: %d", nbActors);
+	}
+
 	ImGui::End();
 
 	ImGui::Render();
