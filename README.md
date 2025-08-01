@@ -5,8 +5,13 @@
 - 本仓库使用主要使用`OpenGL`实现了一个车辆模拟的三维程序。
 - 物理引擎方面使用现成的物理库Physx（关于为什么使用这个物理库，我可以为你讲上三天三夜，这里有太多的理由了......）。我引入此库实现了车辆的运动，并且支持手动挡和自动挡的切换驾驶。
 - 画面镜头能够跟随`WASD`键移动（上帝视角），而且可以手动切换为车辆视角。按住右键移动可移动画面。
+- 手写了一个日志系统，能够附加输出到控制台和文件中，用于调试和保存日志信息。
 
 ## 示例图片
+<img width="1858" height="1080" alt="image" src="https://github.com/user-attachments/assets/40a3ce83-c875-4eb6-840e-f42d03c99322" />
+<img width="1858" height="1080" alt="image" src="https://github.com/user-attachments/assets/ce6aa416-9abb-4fd4-94b5-6cb12df22265" />
+<img width="1027" height="157" alt="image" src="https://github.com/user-attachments/assets/4a54a348-3005-43fe-a719-7c5514480581" />
+<img width="1858" height="1080" alt="image" src="https://github.com/user-attachments/assets/18fce0d7-7c95-4cbd-a9cf-34d40c1b6d5c" />
 
 
 ## 关于未来
